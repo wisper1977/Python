@@ -1,5 +1,3 @@
-# David Thursby
-
 # Dictionary of rooms and directions
 rooms = {'Landing Zone': {'South': 'Forest'},
          'Forest': {'South': 'Meadow', 'North': 'Landing Zone', 'East':'Expansive Forest', 'West':'Expansive Forest'},
