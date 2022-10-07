@@ -1,0 +1,86 @@
+"""
+Molar Mass Calaculator
+
+Description:
+"""
+#Setup
+import periodic_table
+import re
+
+#Instructions
+print("Welcome to the Molar Mass Calculator!!")
+print("Please enter your Chemical Compound in the following format.")
+print("  1. Enter each element with a space between each.\n  2. Add a atom to each element.\n  3. Only four elements per compound.")
+print("Example: Na2 C1 O3")
+print("")
+
+#Ask user for compounds (Input)
+compound_input = input("Enter a Chemical Compound. ")
+compound_input = compound_input.title()
+compound_molarmass = 0
+
+#Create Lists and Positions
+compoundElementList = compound_input.split()
+compoundElementList = [
+    re.sub(r'[0-9]+', '', item) for item in compoundElementList
+]
+number_compounds = len(compoundElementList)
+compoundAtomsList = re.findall(r'\d',compound_input)
+
+#Get data for calculation
+if number_compounds >= 1:
+    element_1_symbol = "periodic_table." + compoundElementList[0] + ".Symbol"
+    element_1_name = "periodic_table." + compoundElementList[0] + ".Name"
+    element_1_am = "periodic_table." + compoundElementList[0] + ".AtomicMass"
+    element_1_am = eval(element_1_am).strip(" amu")
+    element_1_atom = compoundAtomsList[0]
+    if number_compounds >= 2:
+        element_2_symbol = "periodic_table." + compoundElementList[1] + ".Symbol"
+        element_2_name = "periodic_table." + compoundElementList[1] + ".Name"
+        element_2_am = "periodic_table." + compoundElementList[1] + ".AtomicMass"
+        element_2_am = eval(element_2_am).strip(" amu")
+        element_2_atom = compoundAtomsList[1]
+        if number_compounds >= 3:
+            element_3_symbol = "periodic_table." + compoundElementList[2] + ".Symbol"
+            element_3_name = "periodic_table." + compoundElementList[2] + ".Name"
+            element_3_am = "periodic_table." + compoundElementList[2] + ".AtomicMass"
+            element_3_am = eval(element_3_am).strip(" amu")
+            element_3_atom = compoundAtomsList[2]
+            if number_compounds >= 4:
+                element_4_symbol = "periodic_table." + compoundElementList[3] + ".Symbol"
+                element_4_name = "periodic_table." + compoundElementList[3] + ".Name"
+                element_4_am = "periodic_table." + compoundElementList[3] + ".AtomicMass"
+                element_4_am = eval(element_4_am).strip(" amu")
+                element_4_atom = compoundAtomsList[3]
+
+#Reformat compound
+compound_input = re.sub(r"\s+", "", compound_input)
+compound = eval(element_1_symbol)
+compound += element_1_atom
+
+#Calculations
+if number_compounds >= 1:
+    element_1_molarmass = float(element_1_am) * int(element_1_atom)
+    compound_molarmass += element_1_molarmass
+    if number_compounds >= 2:
+        element_2_molarmass = float(element_2_am) * int(element_2_atom)
+        compound_molarmass += element_2_molarmass
+        if number_compounds >= 3:
+            element_3_molarmass = float(element_3_am) * int(element_3_atom)
+            compound_molarmass += element_3_molarmass
+            if number_compounds >= 4:
+                element_4_molarmass = float(element_4_am) * int(element_4_atom)
+                compound_molarmass += element_4_molarmass
+             
+#Output
+print("")
+if number_compounds >= 1:
+    print("The molar mass of " + eval(element_1_name) + " (" + eval(element_1_symbol) + ") with " + element_1_atom + " atoms, is: " + str(element_1_molarmass) + "g/mole")
+    if number_compounds >= 2:
+        print("The molar mass of " + eval(element_2_name) + " (" + eval(element_2_symbol) + ") with " + element_2_atom + " atoms, is: " + str(element_2_molarmass) + "g/mole")
+        if number_compounds >= 3:
+            print("The molar mass of " + eval(element_3_name) + " (" + eval(element_3_symbol) + ") with " + element_3_atom + " atoms, is: " + str(element_3_molarmass) + "g/mole")
+            if number_compounds >= 4:
+                print("The molar mass of " + eval(element_4_name) + " (" + eval(element_4_symbol) + ") with " + element_4_atom + " atoms, is: " + str(element_4_molarmass) + "g/mole")
+print("")
+print("The molar mass of " + compound_input + " is: " + str(compound_molarmass) + " g/mole")
