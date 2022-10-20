@@ -1,7 +1,6 @@
 """
-Game
-
-Description:
+Army Combat
+Created by: Chris Collins
 """
 
 # Dictionary of rooms and directions
