@@ -23,8 +23,8 @@ items = {'Meadow': 'Helmet',
          'Desert': 'Flack Vest',
          'Expansive Desert': 'Medpac'}
 
+# Variable Setup
 items_collected = []
-
 current_room = "Landing Zone"
 choice = "y"
 
