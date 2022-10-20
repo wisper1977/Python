@@ -1,3 +1,9 @@
+"""
+Game
+
+Description:
+"""
+
 # Dictionary of rooms and directions
 rooms = {'Landing Zone': {'South': 'Forest'},
          'Forest': {'South': 'Meadow', 'North': 'Landing Zone', 'East':'Expansive Forest', 'West':'Expansive Forest'},
@@ -20,6 +26,8 @@ items = {'Meadow': 'Helmet',
 items_collected = []
 
 current_room = "Landing Zone"
+choice = "y"
+
 #function
 def get_new_current_room(current_room,move):
     new_current_room = current_room #declaring
@@ -69,7 +77,7 @@ show_instructions() #calling function
 show_status()
 
 # Loop for check if the player wants to play again
-while True:
+while choice == "y":
 
     # Loop for checking if in the flats
     while current_room != "Flats":
@@ -133,7 +141,7 @@ while True:
     choice = input("Do you want play again (y/n): ")
     if choice == 'y':
         current_room = "Landing Zone"
-        items_collected = None
+        items_collected = []
         pass
     else:
         print("")
