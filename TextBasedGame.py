@@ -70,6 +70,8 @@ def show_status():
         elif items[current_room] not in items_collected:
             print("You see a", items[current_room])
             print("You found a", items[current_room])
+        item_question = input("Would you like to pick item up (y/n)? ")
+        if item_question == "y":
             items_collected.append(items[current_room])
     print("---------------------------")
 
