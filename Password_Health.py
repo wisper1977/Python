@@ -1,7 +1,7 @@
 """
 User-Defined Functions
 Coding Exercise: User-Defined Functions
-Password Health 2
+Password Health
 """
 
 #### ---- Setup ---- ####
