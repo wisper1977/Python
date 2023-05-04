@@ -1,16 +1,11 @@
 """
 User-Defined Functions
 Coding Exercise: User-Defined Functions
-Password Health
+Password Health 2
 """
 
 #### ---- Setup ---- ####
 
-Len = False
-Cap = False
-Low = False
-Num = False
-Spec = False
 Statement = {}
 
 #### ---- Get Passwords ---- ####
@@ -80,14 +75,14 @@ def simplified_password(passwords):
     return simplified_passwords
 
 def strong_password(passwords):
-    
-    global Len
-    global Cap
-    global Low
-    global Num
-    global Spec
-    global count
+
     global Statement    
+    
+    Len = False
+    Cap = False
+    Low = False
+    Num = False
+    Spec = False
     
     ''' Checks whether the string s fits the 
         criteria for a valid password.
