@@ -139,6 +139,8 @@ while choice == "y":
         print("You don't have all the items to fight the Outlaws. You have been defeated!")
 
     print("")
+    
+    # Continue Game Loop
     choice = input("Do you want play again (y/n): ")
     if choice == 'y':
         current_room = "Landing Zone"
