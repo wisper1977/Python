@@ -32,15 +32,26 @@ room_descriptions = {
     'Flats': "You reach the flats. It's an open and barren expanse."
 }
 
-# Dictionary of events with descriptions and outcomes
-events = {
-    'Forest': {'event_type': 'flavor', 'description': "\nYou hear the rustling of leaves nearby. The forest is alive with activity."},
-    'Meadow': {'event_type': 'flavor', 'description': "\nA gentle breeze sweeps across the meadow. The sun warms your face."},
-    'Expansive Forest': {'event_type': 'combat', 'description': "\nA group of bandits emerges from the trees and attacks!", 'enemy': 'Bandits'},
-    'Expansive Meadow': {'event_type': 'flavor', 'description': "\nThe expansive meadow stretches before you. It's surprisingly peaceful."},
-    'Expansive Desert': {'event_type': 'combat', 'description': "\nYou spot a pack of wild creatures prowling the desert!", 'enemy': 'Creatures'},
-    'Flats': {'event_type': 'combat', 'description': "\nThe Outlaws are blocking your path and attack!", 'enemy': 'Outlaws'}
-}
+# Separate list for combat events
+combat_events = [
+    {'event_type': 'combat', 'description': "\nYou encounter hostile creatures!", 'enemy': 'Creatures'},
+    {'event_type': 'combat', 'description': "\nA group of bandits attacks!", 'enemy': 'Bandits'},
+    # Add more combat events here
+]
+
+# Dictionary of random events with descriptions and outcomes
+random_events = [
+    {'event_type': 'flavor', 'description': "\nYou hear strange noises in the distance."},
+    {'event_type': 'flavor', 'description': "\nA mysterious mist envelops the area."},
+    {'event_type': 'flavor', 'description': "\nYou stumble upon an old campsite."},
+    # Add more flavor events here
+]
+
+# Dictionary for the Outlaws battle
+combat_event_outlaws = [
+    {'event_type': 'combat', 'description': "\nThe Outlaws have found you!", 'enemy': 'Outlaws'},
+    # Add more outlaw-related combat events here if needed
+]
 
 # Dictionary of possible items
 possible_items = [
@@ -78,8 +89,11 @@ def initialize_items():
     Initializes items in each room by generating random items from possible_items.
     """
     global items
-    items = {room: generate_random_item() for room in rooms if room not in ['Landing Zone', 'Flats']}
-
+    items = {
+        room: generate_random_item() if room not in collected_items else collected_items[room]
+        for room in rooms if room not in ['Landing Zone', 'Flats']
+    }
+    
 # Function to get valid direction input from the user
 def get_valid_direction(dir_poss):
     while True:
@@ -168,36 +182,30 @@ def collect_item(room_name):
         print("Defense increased by", collected_item['def'])
 
 # Function to handle the event in the current room
-def handle_event(current_room):
-    """
-    Handles events that occur in the current room, such as combat encounters.
-    Returns None if no event occurs, otherwise returns the result of the event.
-    """
-    event_info = events.get(current_room)
-    if event_info:
-        event_type = event_info.get('event_type')
-        description = event_info.get('description')
+def handle_random_event(event_list):
+    event_info = random.choice(event_list)
+    event_type = event_info.get('event_type')
+    description = event_info.get('description')
 
-        print("\n" + ("=" * 50))
-        print(description)
+    print("\n" + ("=" * 50))
+    print(description)
 
-        if event_type == 'combat':
-            enemy_name = event_info.get('enemy')
-            combat_result = handle_combat(enemy_name)
+    if event_type == 'flavor':
+        # You can implement additional logic for different flavor events here
+        pass
+    elif event_type == 'combat':
+        enemy_name = event_info.get('enemy')
+        combat_result = handle_combat(enemy_name)
 
-            if combat_result == 'win':
-                print("\nCongratulations! You defeated the", enemy_name)
-            elif combat_result == 'lose':
-                print("\nYou were defeated by the", enemy_name + ". Game over.")
-            elif combat_result == 'run':
-                print("\nYou managed to escape from the", enemy_name)
+        if combat_result == 'win':
+            print("\nCongratulations! You defeated the", enemy_name)
+        elif combat_result == 'lose':
+            print("\nYou were defeated by the", enemy_name + ". Game over.")
+        elif combat_result == 'run':
+            print("\nYou managed to escape from the", enemy_name)
 
-            events[current_room] = None
-
-        print("=" * 50 + "\n")
-
-    return None
-
+    print("=" * 50 + "\n")
+    
 # Function to handle combat encounters
 def handle_combat(enemy_name):
     """
@@ -276,22 +284,36 @@ def main():
                 current_room = rooms[current_room][direction]
                 show_status()
 
-                event_result = handle_event(current_room)
+                # Randomly choose between random_events (75% chance) and combat_events (25% chance)
+                if random.random() < 0.75:
+                    event_list = random_events
+                else:
+                    event_list = combat_events
+                    
+                event_result = handle_random_event(event_list)
                 if event_result == 'lose':
                     print("You were defeated in combat. Game over.")
                     break
 
             if current_room == "Flats":
-                print("You have reached the Flats.")
-                event_result = handle_event(current_room)
+                event_result = handle_random_event(combat_event_outlaws)  # Use the combat_event_outlaws list only in Flats
+            if event_result == 'lose':
+                print("You were defeated in combat. Game over.")
+                break
 
             choice = input("Play again? (y/n): ").lower()
             if choice != 'y':
                 print("\nThanks for playing the Game......")
                 break
 
+            player_health = 100   # Reset the player's health
+            player_attack = 10    # Reset the player's attack
+            player_defense = 0    # Reset the player's defense
             current_room = "Landing Zone"
             collected_items = {}
+            
+            # Reset items in rooms
+            initialize_items()  # Add this line to reset the items in rooms
 
         except (KeyError, KeyboardInterrupt):
             print("Oops! There was an error. Please contact the developer.")
@@ -300,5 +322,8 @@ def main():
             print("An unexpected error occurred:", str(e))
             break
 
+        current_room = "Landing Zone"
+        collected_items = {}
+            
 if __name__ == "__main__":
     main()
