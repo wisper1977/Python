@@ -7,56 +7,110 @@ import random
 
 # Dictionary of rooms and directions
 rooms = {
-    # Starting Zone
-    'Landing Zone': {'South': 'Forest'},
-    # Forest Level
-    'Forest': {'South': 'Meadow', 'North': 'Landing Zone', 'East': 'Forest Glade', 'West': 'Creek Bank'},
-    'Forest Glade': {'East': 'Deep Forest', 'West': 'Forest'},
-    'Creek Bank': {'East': "Forest", 'West': 'Deep Forest', 'South': 'Winding Brook'},
-    'Deep Forest': {'East': 'Creek Bank', 'West': 'Forest Glade'},
-    # Meadow Level
-    'Meadow': {'North': 'Forest', 'East': 'Grazing Pasture', 'West': 'Winding Brook', 'South': 'Desert'},
-    'Winding Brook':{'East': 'Meadow', 'West': 'Verdant Expanse','North': 'Creek Bank', 'South': 'Dried Riverbed'},
-    'Grazing Pasture':{'East': 'Verdant Expanse', 'West': 'Meadow'},
-    'Verdant Expanse': {'East': 'Winding Brook', 'West': 'Grazing Pasture'},
-    # Desert Level
-    'Desert': {'North': 'Meadow', 'East': 'Oasis', 'West': 'Dried Riverbed', 'South': 'Flats'},
-    'Dried Riverbed':{'East': 'Desert', 'West': 'Scorched Wasteland','North': 'Winding Brook'},
-    'Oasis':{'East': 'Scorched Wasteland', 'West': 'Desert'},
-    'Scorched Wasteland': {'East': 'Dried Riverbed', 'West': 'Oasis'},
-    # Flats Level
-    'Flats': {'East': 'Solemn Savannah', 'West': 'Lonely Steppe', 'North': 'Desert', 'South': 'Outlaw Camp'},
-    'Lonely Steppe':{'East': 'Flats', 'West': 'Desolate Expanse'},
-    'Solemn Savannah':{'East': 'Desolate Expanse', 'West': 'Flats'},
-    'Desolate Expanse': {'East': 'Lonely Steppe', 'West': 'Solemn Savannah'},
-    # Boss Level
-    'Outlaw Camp': {'North': 'Flats'}    
+    'Landing Zone': {
+        'description': "You find yourself amidst a dense and ancient forest. The air is rich with the scent of pine, and beams of sunlight pierce through the thick canopy.",
+        'South': 'Forest'
+    },
+    'Forest': {
+        'description': "You stand in a realm of shadows and whispers. Towering trees with gnarled branches encircle you, creating an otherworldly ambience.",
+        'South': 'Meadow',
+        'North': 'Landing Zone',
+        'East': 'Forest Glade',
+        'West': 'Creek Bank'
+    },
+    'Forest Glade': {
+        'description': "Stepping into this secluded glade is like entering a secret haven of tranquility. Sunbeams dance through the emerald foliage, painting patterns of light on the forest floor.",
+        'East': 'Deep Forest',
+        'West': 'Forest'
+    },
+    'Creek Bank': {
+        'description': "At the creek's edge, crystal-clear water flows gently over smooth pebbles. The serene gurgling of the creek blends harmoniously with the rustling leaves.",
+        'East': "Forest",
+        'West': 'Deep Forest',
+        'South': 'Winding Brook'
+    },
+    'Deep Forest': {
+        'description': "Venturing further into the heart of the forest, you become enveloped in an enigmatic realm. Ancient trees form an intricate maze, and dappled sunlight creates mesmerizing patterns.",
+        'East': 'Creek Bank',
+        'West': 'Forest Glade'
+    },
+    'Meadow': {
+        'description': "The meadow stretches out like an artist's canvas. Wildflowers of every hue sway in unison, their delicate fragrances carried by the breeze.",
+        'North': 'Forest',
+        'East': 'Grazing Pasture',
+        'West': 'Winding Brook',
+        'South': 'Desert'
+    },
+    'Winding Brook': {
+        'description': "You follow the path of a meandering brook, its babbling melody a soothing accompaniment to your journey. Ferns and mosses thrive in the damp, fertile soil.",
+        'East': 'Meadow',
+        'West': 'Verdant Expanse',
+        'North': 'Creek Bank',
+        'South': 'Dried Riverbed'
+    },
+    'Grazing Pasture': {
+        'description': "A serene pasture greets you, where contented animals graze peacefully. The distant lowing of cattle and the soft swaying of grass create a serene pastoral symphony.",
+        'East': 'Verdant Expanse',
+        'West': 'Meadow'
+    },
+    'Verdant Expanse': {
+        'description': "You find yourself in a breathtaking verdant expanse. The meadow seems to stretch beyond the horizon, a sea of vibrant green that dances in harmony with the wind.",
+        'East': 'Winding Brook',
+        'West': 'Grazing Pasture'
+    },
+    'Desert': {
+        'description': "The desert's embrace is both harsh and awe-inspiring. Waves of heat rise from the sun-scorched sand, and the distant horizon shimmers with mirages.",
+        'North': 'Meadow',
+        'East': 'Oasis',
+        'West': 'Dried Riverbed',
+        'South': 'Flats'
+    },
+    'Dried Riverbed': {
+        'description': "At the dried riverbed, fractured earth whispers stories of ancient waters. It's a landscape of contrasts, where the memory of flowing rivers meets the arid present.",
+        'East': 'Desert',
+        'West': 'Scorched Wasteland',
+        'North': 'Winding Brook'
+    },
+    'Oasis': {
+        'description': "An oasis of life amidst the desert's desolation. Palm trees sway in the breeze, and the clear pool reflects the vibrant blue sky like a precious gem.",
+        'East': 'Scorched Wasteland',
+        'West': 'Desert'
+    },
+    'Scorched Wasteland': {
+        'description': "The wasteland stretches endlessly, a harsh testament to nature's unforgiving side. Heatwaves distort the air, and the silence is broken only by the distant call of a desert creature.",
+        'East': 'Dried Riverbed',
+        'West': 'Oasis'
+    },
+    'Flats': {
+        'description': "You step onto the flats, an open and barren expanse that stretches as far as the eye can see. The land is still, a canvas awaiting the story of your journey.",
+        'East': 'Solemn Savannah',
+        'West': 'Lonely Steppe',
+        'North': 'Desert',
+        'South': 'Outlaw Camp'
+    },
+    'Lonely Steppe': {
+        'description': "You find yourself on a lonely steppe, the vast open landscape stretching far and wide. The wind carries the scent of earth and grass.",
+        'East': 'Flats',
+        'West': 'Desolate Expanse'
+    },
+    'Solemn Savannah': {
+        'description': "You enter a solemn savannah, the ground rolling gently under your feet. The stillness of the landscape fills you with a sense of reverence.",
+        'East': 'Desolate Expanse',
+        'West': 'Flats'
+    },
+    'Desolate Expanse': {
+        'description': "The land before you is desolate and expansive. It's a place of emptiness and solitude, where the horizon seems distant and unreachable.",
+        'East': 'Lonely Steppe',
+        'West': 'Solemn Savannah'
+    },
+    'Outlaw Camp': {
+        'description': "You've reached the outlaw camp, a makeshift settlement in the flats. Tents and fires tell tales of lawlessness and danger. Keep your guard up.",
+        'North': 'Flats'
+    }
 }
 
 # Dictionary of items in each room
 items = {room: None for room in rooms}
-
-# Dictionary of room descriptions
-room_descriptions = {
-    'Landing Zone': "You find yourself amidst a dense and ancient forest. The air is rich with the scent of pine, and beams of sunlight pierce through the thick canopy.",
-    'Forest': "You stand in a realm of shadows and whispers. Towering trees with gnarled branches encircle you, creating an otherworldly ambience.",
-    'Forest Glade': "Stepping into this secluded glade is like entering a secret haven of tranquility. Sunbeams dance through the emerald foliage, painting patterns of light on the forest floor.",
-    'Creek Bank': "At the creek's edge, crystal-clear water flows gently over smooth pebbles. The serene gurgling of the creek blends harmoniously with the rustling leaves.",
-    'Deep Forest': "Venturing further into the heart of the forest, you become enveloped in an enigmatic realm. Ancient trees form an intricate maze, and dappled sunlight creates mesmerizing patterns.",
-    'Meadow': "The meadow stretches out like an artist's canvas. Wildflowers of every hue sway in unison, their delicate fragrances carried by the breeze.",
-    'Winding Brook': "You follow the path of a meandering brook, its babbling melody a soothing accompaniment to your journey. Ferns and mosses thrive in the damp, fertile soil.",
-    'Grazing Pasture': "A serene pasture greets you, where contented animals graze peacefully. The distant lowing of cattle and the soft swaying of grass create a serene pastoral symphony.",
-    'Verdant Expanse': "You find yourself in a breathtaking verdant expanse. The meadow seems to stretch beyond the horizon, a sea of vibrant green that dances in harmony with the wind.",
-    'Desert': "The desert's embrace is both harsh and awe-inspiring. Waves of heat rise from the sun-scorched sand, and the distant horizon shimmers with mirages.",
-    'Dried Riverbed': "At the dried riverbed, fractured earth whispers stories of ancient waters. It's a landscape of contrasts, where the memory of flowing rivers meets the arid present.",
-    'Oasis': "An oasis of life amidst the desert's desolation. Palm trees sway in the breeze, and the clear pool reflects the vibrant blue sky like a precious gem.",
-    'Scorched Wasteland': "The wasteland stretches endlessly, a harsh testament to nature's unforgiving side. Heatwaves distort the air, and the silence is broken only by the distant call of a desert creature.",
-    'Flats': "You step onto the flats, an open and barren expanse that stretches as far as the eye can see. The land is still, a canvas awaiting the story of your journey.",
-    'Lonely Steppe': "You find yourself on a lonely steppe, the vast open landscape stretching far and wide. The wind carries the scent of earth and grass.",
-    'Solemn Savannah': "You enter a solemn savannah, the ground rolling gently under your feet. The stillness of the landscape fills you with a sense of reverence.",
-    'Desolate Expanse': "The land before you is desolate and expansive. It's a place of emptiness and solitude, where the horizon seems distant and unreachable.",
-    'Outlaw Camp': "You've reached the outlaw camp, a makeshift settlement in the flats. Tents and fires tell tales of lawlessness and danger. Keep your guard up."
-}
 
 # Separate list for combat events
 combat_events = [
@@ -166,7 +220,7 @@ def show_status():
             print("\nYou are now entering the Outlaw Camp")
         else:
             print("\nYou are now in the", current_room)
-            print("Description:", room_descriptions[current_room])
+            print("Description:", rooms[current_room]['description'])
 
             if items.get(current_room) and items[current_room]['name'] not in collected_items:
                 print("\nThere is a", items[current_room]['name'], "in the room.")
@@ -356,7 +410,7 @@ def main():
                     print("You are trapped! No available moves.")
                     break
 
-                print('Possible moves:', ', '.join(dir_poss))
+                print('You are in ' + current_room + ', your possible moves are: ' + ', '.join([move for move in dir_poss if move != 'description']))
                 direction = get_valid_direction(dir_poss)
                 current_room = rooms[current_room][direction]
                 show_status()
