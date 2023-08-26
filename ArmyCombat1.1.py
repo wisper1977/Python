@@ -1,5 +1,5 @@
 """
-Army Combat v1.1
+Army Combat v1.102
 by: Chris Collins
 """
 # Import Modules
