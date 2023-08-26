@@ -109,9 +109,6 @@ player_defense = 0
 collected_items = {}
 current_room = "Landing Zone"
 
-# Medpac properties
-medpack_heal_amount = 30
-
 def generate_random_item():
     """
     Randomly selects an item from possible_items list and returns it.
