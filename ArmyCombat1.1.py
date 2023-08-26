@@ -7,14 +7,30 @@ import random
 
 # Dictionary of rooms and directions
 rooms = {
+    # Starting Zone
     'Landing Zone': {'South': 'Forest'},
-    'Forest': {'South': 'Meadow', 'North': 'Landing Zone', 'East': 'Expansive Forest', 'West': 'Expansive Forest'},
-    'Expansive Forest': {'East': 'Forest', 'West': 'Forest'},
-    'Meadow': {'North': 'Forest', 'East': 'Expansive Meadow', 'West': 'Expansive Meadow', 'South': 'Desert'},
-    'Expansive Meadow': {'East': 'Meadow', 'West': 'Meadow'},
-    'Desert': {'North': 'Meadow', 'East': 'Expansive Desert', 'West': 'Expansive Desert', 'South': 'Flats'},
-    'Expansive Desert': {'East': 'Desert', 'West': 'Desert'},
-    'Flats': {'North': 'Desert'}
+    # Forest Level
+    'Forest': {'South': 'Meadow', 'North': 'Landing Zone', 'East': 'Forest Glade', 'West': 'Creek Bank'},
+    'Forest Glade': {'East': 'Deep Forest', 'West': 'Forest'},
+    'Creek Bank': {'East': "Forest", 'West': 'Deep Forest', 'South': 'Winding Brook'},
+    'Deep Forest': {'East': 'Creek Bank', 'West': 'Forest Glade'},
+    # Meadow Level
+    'Meadow': {'North': 'Forest', 'East': 'Grazing Pasture', 'West': 'Winding Brook', 'South': 'Desert'},
+    'Winding Brook':{'East': 'Meadow', 'West': 'Verdant Expanse','North': 'Creek Bank', 'South': 'Dried Riverbed'},
+    'Grazing Pasture':{'East': 'Verdant Expanse', 'West': 'Meadow'},
+    'Verdant Expanse': {'East': 'Winding Brook', 'West': 'Grazing Pasture'},
+    # Desert Level
+    'Desert': {'North': 'Meadow', 'East': 'Oasis', 'West': 'Dried Riverbed', 'South': 'Flats'},
+    'Dried Riverbed':{'East': 'Meadow', 'West': 'Scorched Wasteland','North': 'Winding Brook'},
+    'Oasis':{'East': 'Scorched Wasteland', 'West': 'Desert'},
+    'Scorched Wasteland': {'East': 'Dried Riverbed', 'West': 'Oasis'},
+    # Flats Level
+    'Flats': {'East': 'Solemn Savannah', 'West': 'Lonely Steppe', 'North': 'Desert', 'South': 'Outlaw Camp'},
+    'Lonely Steppe':{'East': 'Flats', 'West': 'Desolate Expanse'},
+    'Solemn Savannah':{'East': 'Desolate Expanse', 'West': 'Flats'},
+    'Desolate Expanse': {'East': 'Lonely Steppe', 'West': 'Solemn Savannah'},
+    # Boss Level
+    'Outlaw Camp': {'North': 'Flats'}    
 }
 
 # Dictionary of items in each room
@@ -22,21 +38,33 @@ items = {room: None for room in rooms}
 
 # Dictionary of room descriptions
 room_descriptions = {
-    'Landing Zone': "You find yourself in a dense forest. The air smells of pine.",
-    'Forest': "You are in a dimly lit forest. Tall trees surround you.",
-    'Expansive Forest': "The forest continues in all directions. The trees seem endless.",
-    'Meadow': "You stand in a serene meadow. The grass sways gently in the wind.",
-    'Expansive Meadow': "The meadow stretches as far as you can see. The sun warms your face.",
-    'Desert': "The landscape changes to a vast desert. The sand is scorching hot.",
-    'Expansive Desert': "The desert seems to go on forever. Heatwaves distort your view.",
-    'Flats': "You reach the flats. It's an open and barren expanse."
+    'Landing Zone': "You find yourself amidst a dense and ancient forest. The air is rich with the scent of pine, and beams of sunlight pierce through the thick canopy.",
+    'Forest': "You stand in a realm of shadows and whispers. Towering trees with gnarled branches encircle you, creating an otherworldly ambience.",
+    'Forest Glade': "Stepping into this secluded glade is like entering a secret haven of tranquility. Sunbeams dance through the emerald foliage, painting patterns of light on the forest floor.",
+    'Creek Bank': "At the creek's edge, crystal-clear water flows gently over smooth pebbles. The serene gurgling of the creek blends harmoniously with the rustling leaves.",
+    'Deep Forest': "Venturing further into the heart of the forest, you become enveloped in an enigmatic realm. Ancient trees form an intricate maze, and dappled sunlight creates mesmerizing patterns.",
+    'Meadow': "The meadow stretches out like an artist's canvas. Wildflowers of every hue sway in unison, their delicate fragrances carried by the breeze.",
+    'Winding Brook': "You follow the path of a meandering brook, its babbling melody a soothing accompaniment to your journey. Ferns and mosses thrive in the damp, fertile soil.",
+    'Grazing Pasture': "A serene pasture greets you, where contented animals graze peacefully. The distant lowing of cattle and the soft swaying of grass create a serene pastoral symphony.",
+    'Verdant Expanse': "You find yourself in a breathtaking verdant expanse. The meadow seems to stretch beyond the horizon, a sea of vibrant green that dances in harmony with the wind.",
+    'Desert': "The desert's embrace is both harsh and awe-inspiring. Waves of heat rise from the sun-scorched sand, and the distant horizon shimmers with mirages.",
+    'Dried Riverbed': "At the dried riverbed, fractured earth whispers stories of ancient waters. It's a landscape of contrasts, where the memory of flowing rivers meets the arid present.",
+    'Oasis': "An oasis of life amidst the desert's desolation. Palm trees sway in the breeze, and the clear pool reflects the vibrant blue sky like a precious gem.",
+    'Scorched Wasteland': "The wasteland stretches endlessly, a harsh testament to nature's unforgiving side. Heatwaves distort the air, and the silence is broken only by the distant call of a desert creature.",
+    'Flats': "You step onto the flats, an open and barren expanse that stretches as far as the eye can see. The land is still, a canvas awaiting the story of your journey.",
+    'Lonely Steppe': "You find yourself on a lonely steppe, the vast open landscape stretching far and wide. The wind carries the scent of earth and grass.",
+    'Solemn Savannah': "You enter a solemn savannah, the ground rolling gently under your feet. The stillness of the landscape fills you with a sense of reverence.",
+    'Desolate Expanse': "The land before you is desolate and expansive. It's a place of emptiness and solitude, where the horizon seems distant and unreachable.",
+    'Outlaw Camp': "You've reached the outlaw camp, a makeshift settlement in the flats. Tents and fires tell tales of lawlessness and danger. Keep your guard up."
 }
 
 # Separate list for combat events
 combat_events = [
     {'event_type': 'combat', 'description': "\nYou encounter hostile creatures!", 'enemy': 'Creatures'},
     {'event_type': 'combat', 'description': "\nA group of bandits attacks!", 'enemy': 'Bandits'},
-    # Add more combat events here
+    {'event_type': 'combat', 'description': "\nYou encounter a hostile group of looters!", 'enemy': 'Looters'},
+    {'event_type': 'combat', 'description': "\nA rival faction ambushes you!", 'enemy': 'Rival Faction'},
+    {'event_type': 'combat', 'description': "\nA pack of feral dogs attacks!", 'enemy': 'Feral Dogs'},
 ]
 
 # Dictionary of random events with descriptions and outcomes
@@ -44,6 +72,11 @@ random_events = [
     {'event_type': 'flavor', 'description': "\nYou hear strange noises in the distance."},
     {'event_type': 'flavor', 'description': "\nA mysterious mist envelops the area."},
     {'event_type': 'flavor', 'description': "\nYou stumble upon an old campsite."},
+    {'event_type': 'flavor', 'description': "\nYou find a hidden cache of supplies."},
+    {'event_type': 'flavor', 'description': "\nA sudden rainstorm forces you to take shelter."},
+    {'event_type': 'flavor', 'description': "\nYou come across an abandoned vehicle."},
+    {'event_type': 'flavor', 'description': "\nYou discover a torn map with a mysterious location marked."},
+    {'event_type': 'flavor', 'description': "\nYou stumble upon a makeshift campfire."},
     # Add more flavor events here
 ]
 
@@ -60,7 +93,13 @@ possible_items = [
     {'name': 'Rifle', 'def': 0, 'att': 15, 'heal': 0},
     {'name': 'Grenade', 'def': 0, 'att': 10, 'heal': 0},
     {'name': 'Flak Vest', 'def': 20, 'att': 0, 'heal': 0},
-    {'name': 'Medpac', 'def': 0, 'att': 0, 'heal': 30}  # Add Medpac to the list
+    {'name': 'Medpac', 'def': 0, 'att': 0, 'heal': 30},
+    {'name': 'Knife', 'def': 0, 'att': 5, 'heal': 0},
+    {'name': 'Energy Drink', 'def': 0, 'att': 0, 'heal': 15},
+    {'name': 'Rucksack', 'def': 0, 'att': 0, 'heal': 0},
+    {'name': 'Shovel', 'def': 0, 'att': 0, 'heal': 0},
+    {'name': 'Canteen', 'def': 0, 'att': 0, 'heal': 5},
+    # Add more items here
 ]
 
 # Set Variables
@@ -91,7 +130,7 @@ def initialize_items():
     global items
     items = {
         room: generate_random_item() if room not in collected_items else collected_items[room]
-        for room in rooms if room not in ['Landing Zone', 'Flats']
+        for room in rooms if room not in ['Landing Zone', 'Outlaw Camp']
     }
     
 # Function to get valid direction input from the user
@@ -126,8 +165,8 @@ def show_status():
         if current_room == "Landing Zone":
             print("\nYou are now in the Landing Zone")
             print("There are no items here.")
-        elif current_room == "Flats":
-            print("\nYou are now in the Flats")
+        elif current_room == "Outlaw Camp":
+            print("\nYou are now entering the Outlaw Camp")
         else:
             print("\nYou are now in the", current_room)
             print("Description:", room_descriptions[current_room])
@@ -148,10 +187,15 @@ def show_status():
 # Function to display the player's inventory
 def show_inventory():
     global collected_items
+    max_uses = {
+        'Medpac': 1,
+        'Canteen': 3,
+        'Energy Drink': 2
+    }
     print(("-" * 19) + " Inventory " + ("-" * 20))
     for item in collected_items:
-        if item == 'Medpac':
-            print(item + ": " + str(collected_items[item]['count']) + " (Uses: " + str(collected_items[item]['uses']) + "/3)")
+        if item in max_uses:
+            print(item + ": " + str(collected_items[item]['count']) + " (Uses: " + str(collected_items[item]['uses']) + "/" + str(max_uses[item]) + ")")
         else:
             print(item)
     print("-" * 50)
@@ -159,15 +203,18 @@ def show_inventory():
 # Function to collect an item in the current room
 def collect_item(room_name):
     """
-    Randomly selects an item from possible_items list and returns it.
-    Removes the chosen item from possible_items.
+    Adds the item from the room to the player's inventory.
     """
     global collected_items, player_attack, player_defense
     collected_item = items[room_name]
     
     item_name = collected_item['name']
     if item_name not in collected_items:
-        collected_items[item_name] = {'count': 1, 'uses': collected_item.get('uses', 0)}
+        collected_items[item_name] = {
+            'count': 1, 
+            'uses': collected_item.get('uses', 0),
+            'heal': collected_item.get('heal', 0)  # Copy the 'heal' attribute
+        }
     else:
         collected_items[item_name]['count'] += 1
         
@@ -223,7 +270,7 @@ def handle_combat(enemy_name):
         print("\nYour health:", player_health)
         print(enemy_name + "'s health:", enemy_health)
 
-        action = input("\n[F]ight, [R]un, [U]se Med Pack? ").lower()
+        action = input("\n[F]ight, [R]un, [U]se Healing Item? ").lower()
 
         # Fighting
         if action == 'f':
@@ -246,21 +293,33 @@ def handle_combat(enemy_name):
             print("\nYou choose to run away.")
             return 'run'
 
-        # Use medpac       
+        # Use healing       
         elif action == 'u':
-            medpack = collected_items.get('Medpac', {'count': 0, 'uses': 0})
-            if medpack['count'] > 0 and medpack_uses < 3:
-                player_health += medpack_heal_amount
-                player_health = min(player_health, 100)
-                print("\nYou used a Medpac and gained", medpack_heal_amount, "health.")
-                print("New health:", player_health)
-                medpack_uses += 1
-            elif medpack['count'] == 0:
-                print("\nYou don't have a Medpac to use.")
+            healing_items = [item for item in collected_items if 'heal' in collected_items[item] and collected_items[item]['heal'] > 0]
+            if not healing_items:
+                print("\nYou don't have any healing items to use.")
             else:
-                print("\nYou have already used this Medpac three times.")
-
-    print("\n" + ("-" * 50))
+                print("\nSelect a healing item to use:")
+                for index, item in enumerate(healing_items, start=1):
+                    print(str(index) + ". " + item + " (Heals " + str(collected_items[item]['heal']) + " HP)")
+                choice = input("Enter the number of the healing item to use: ")
+                try:
+                    choice_index = int(choice) - 1
+                    if 0 <= choice_index < len(healing_items):
+                        healing_item = healing_items[choice_index]
+                        heal_amount = collected_items[healing_item]['heal']
+                        player_health += heal_amount
+                        player_health = min(player_health, 100)
+                        collected_items[healing_item]['count'] -= 1
+                        print("\nYou used a " + healing_item + " and gained " + str(heal_amount) + " health.")
+                        print("New health:", player_health)
+                        if collected_items[healing_item]['count'] <= 0:
+                            del collected_items[healing_item]
+                    else:
+                        print("Invalid choice.")
+                except ValueError:
+                    print("Invalid input. Enter the number of the healing item.")
+    
     return None
 
 # Main Game Play
@@ -273,7 +332,7 @@ def main():
             initialize_items()
             show_status()
 
-            while current_room != "Flats":
+            while current_room != "Outlaw Camp":
                 dir_poss = list(rooms.get(current_room, {}).keys())
                 if not dir_poss:
                     print("You are trapped! No available moves.")
@@ -295,7 +354,7 @@ def main():
                     print("You were defeated in combat. Game over.")
                     break
 
-            if current_room == "Flats":
+            if current_room == "Outlaw Camp":
                 event_result = handle_random_event(combat_event_outlaws)  # Use the combat_event_outlaws list only in Flats
             if event_result == 'lose':
                 print("You were defeated in combat. Game over.")
