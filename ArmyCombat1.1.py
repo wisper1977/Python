@@ -1,5 +1,5 @@
 """
-Army Combat v1.102
+Army Combat v1.1
 by: Chris Collins
 """
 # Import Modules
@@ -21,7 +21,7 @@ rooms = {
     'Verdant Expanse': {'East': 'Winding Brook', 'West': 'Grazing Pasture'},
     # Desert Level
     'Desert': {'North': 'Meadow', 'East': 'Oasis', 'West': 'Dried Riverbed', 'South': 'Flats'},
-    'Dried Riverbed':{'East': 'Meadow', 'West': 'Scorched Wasteland','North': 'Winding Brook'},
+    'Dried Riverbed':{'East': 'Desert', 'West': 'Scorched Wasteland','North': 'Winding Brook'},
     'Oasis':{'East': 'Scorched Wasteland', 'West': 'Desert'},
     'Scorched Wasteland': {'East': 'Dried Riverbed', 'West': 'Oasis'},
     # Flats Level
@@ -93,12 +93,12 @@ possible_items = [
     {'name': 'Rifle', 'def': 0, 'att': 15, 'heal': 0},
     {'name': 'Grenade', 'def': 0, 'att': 10, 'heal': 0},
     {'name': 'Flak Vest', 'def': 20, 'att': 0, 'heal': 0},
-    {'name': 'Medpac', 'def': 0, 'att': 0, 'heal': 30},
+    {'name': 'Medpac', 'def': 0, 'att': 0, 'heal': 30, 'max_uses': 1},
     {'name': 'Knife', 'def': 0, 'att': 5, 'heal': 0},
-    {'name': 'Energy Drink', 'def': 0, 'att': 0, 'heal': 15},
+    {'name': 'Energy Drink', 'def': 0, 'att': 0, 'heal': 15, 'max_uses': 2},
     {'name': 'Rucksack', 'def': 0, 'att': 0, 'heal': 0},
     {'name': 'Shovel', 'def': 0, 'att': 0, 'heal': 0},
-    {'name': 'Canteen', 'def': 0, 'att': 0, 'heal': 5},
+    {'name': 'Canteen', 'def': 0, 'att': 0, 'heal': 5, 'max_uses': 3},
     # Add more items here
 ]
 
@@ -183,28 +183,49 @@ def show_status():
     except KeyError:
         print("An error occurred while accessing room information.")
 
-
-# Function to display the player's inventory
+# Function to display player's Inventory
 def show_inventory():
     global collected_items
-    max_uses = {
-        'Medpac': 1,
-        'Canteen': 3,
-        'Energy Drink': 2
-    }
     print(("-" * 19) + " Inventory " + ("-" * 20))
-    for item in collected_items:
-        if item in max_uses:
-            print(item + ": " + str(collected_items[item]['count']) + " (Uses: " + str(collected_items[item]['uses']) + "/" + str(max_uses[item]) + ")")
+    for item_name, item_data in collected_items.items():
+        # Check if the item has healing capability
+        if item_data.get('heal', 0) > 0:
+            # Print the item name and count, if count is greater than 1
+            item_count = " x" + str(item_data['count']) if item_data['count'] > 1 else ""
+            # Check if the item has been used, and if so, print the number of uses
+            print(item_name + item_count + " (Uses: " + str(item_data['uses']) + ")")
         else:
-            print(item)
+            print(item_name)
+            
+    print("-" * 50)
+        
+# Function to use item
+def use_item(item_name):
+    global collected_items
+    item = collected_items.get(item_name)
+    
+    if item:
+        max_uses = next((x['max_uses'] for x in possible_items if x['name'] == item_name), None)
+        
+        if max_uses:
+            # If the item has a usage limit
+            current_uses = item.get('uses', 0)
+            if current_uses < max_uses:
+                # Item can still be used
+                item['uses'] = current_uses + 1
+                print("You used " + item_name + ". You have " + max_uses - current_uses + " uses left.")
+            else:
+                print("You have exhausted all uses of " + item_name + ".")
+        else:
+            # No usage limit, just use the item
+            print("You used " + item_name + ".")
+    else:
+        print("You don't have a " + item_name + " in your inventory.")
+    
     print("-" * 50)
     
 # Function to collect an item in the current room
 def collect_item(room_name):
-    """
-    Adds the item from the room to the player's inventory.
-    """
     global collected_items, player_attack, player_defense
     collected_item = items[room_name]
     
