@@ -395,7 +395,7 @@ def handle_combat(enemy_name):
     return None
 
 def replay_game():
-    global player_health, player_attack, player_defense, current_room, collected_items
+    global current_room, collected_items, player_health
 
     while True:
         try:
@@ -404,13 +404,12 @@ def replay_game():
                 print("\nThanks for playing the Game......")
                 break
 
-            player_health = 100
-            player_attack = 10
-            player_defense = 0
+            # Reset game variables for a new playthrough
             current_room = "Landing Zone"
             collected_items = {}
-
             initialize_items()
+
+            main()  # Start a new playthrough
 
         except (KeyError, KeyboardInterrupt):
             print("Oops! There was an error. Please contact the developer.")
@@ -418,9 +417,8 @@ def replay_game():
         except Exception as e:
             print("An unexpected error occurred:", str(e))
             break
-
-        current_room = "Landing Zone"
-        collected_items = {}# Main Game Play
+        
+# Main Game Play        
 def main():
     global current_room, collected_items, player_health
 
