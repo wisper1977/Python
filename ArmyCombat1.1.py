@@ -420,9 +420,7 @@ def replay_game():
             break
 
         current_room = "Landing Zone"
-        collected_items = []
-
-# Main Game Play
+        collected_items = {}# Main Game Play
 def main():
     global current_room, collected_items, player_health
 
@@ -430,6 +428,7 @@ def main():
         try:
             clear_screen()  # Clear the screen at the beginning of the loop
             show_instructions()
+            input("\nPress Enter to start the game...")
             initialize_items()
             show_status()
 
@@ -454,7 +453,7 @@ def main():
                 if event_result == 'lose':
                     print("You were defeated in combat. Game over.")
                     break
-
+                
             if current_room == "Outlaw Camp":
                 event_result = handle_random_event(combat_event_outlaws, current_room)
                 if event_result == 'lose':
@@ -469,9 +468,6 @@ def main():
         except Exception as e:
             print("An unexpected error occurred:", str(e))
             break
-
-        current_room = "Landing Zone"
-        collected_items = {}
 
 if __name__ == "__main__":
     main()
