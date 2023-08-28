@@ -3,7 +3,7 @@ Army Combat v1.1
 by: Chris Collins
 """
 # Import Modules
-import random
+import random, os
 
 # Dictionary of rooms and directions
 rooms = {
@@ -163,6 +163,11 @@ player_defense = 0
 collected_items = {}
 current_room = "Landing Zone"
 
+# Function to clear screen
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    
+# Functon to place items in random rooms
 def generate_random_item():
     """
     Randomly selects an item from possible_items list and returns it.
@@ -187,10 +192,10 @@ def initialize_items():
 # Function to get valid direction input from the user
 def get_valid_direction(dir_poss):
     while True:
-        direction = input("Type the direction you want to move: ").capitalize()
+        direction = input("Choose a direction to move: " + ", ".join([move for move in dir_poss if move != 'description']) + ": ").capitalize()
         if direction in dir_poss:
             return direction
-        print("Invalid direction. Choose from:", ", ".join(dir_poss))
+        print("Invalid direction. Choose from:", ", ".join([move for move in dir_poss if move != 'description']))
 
 # Function to display the game instructions
 def show_instructions():
@@ -210,14 +215,17 @@ def show_instructions():
 def show_status():
     try:
         global player_health
+        
         print("-" * 50)
         print("Health:", player_health)
 
         if current_room == "Landing Zone":
             print("\nYou are now in the Landing Zone")
             print("There are no items here.")
+            
         elif current_room == "Outlaw Camp":
             print("\nYou are now entering the Outlaw Camp")
+            
         else:
             print("\nYou are now in the", current_room)
             print("Description:", rooms[current_room]['description'])
@@ -239,42 +247,17 @@ def show_inventory():
     global collected_items
     print(("-" * 19) + " Inventory " + ("-" * 20))
     for item_name, item_data in collected_items.items():
-        # Check if the item has healing capability
         if item_data.get('heal', 0) > 0:
-            # Print the item name and count, if count is greater than 1
             item_count = " x" + str(item_data['count']) if item_data['count'] > 1 else ""
-            # Check if the item has been used, and if so, print the number of uses
-            print(item_name + item_count + " (Uses: " + str(item_data['uses']) + ")")
+            if 'uses' in item_data and item_data['uses'] > 0:  # Check if uses is greater than 0
+                uses_info = " (Uses: {}/{})".format(item_data['uses'], item_data['max_uses'])
+                print("{}{}{} (Heals: {} HP)".format(item_name, item_count, uses_info, item_data['heal']))
         else:
             print(item_name)
             
     print("-" * 50)
-        
-# Function to use item
-def use_item(item_name):
-    global collected_items
-    item = collected_items.get(item_name)
-    
-    if item:
-        max_uses = next((x['max_uses'] for x in possible_items if x['name'] == item_name), None)
-        
-        if max_uses:
-            # If the item has a usage limit
-            current_uses = item.get('uses', 0)
-            if current_uses < max_uses:
-                # Item can still be used
-                item['uses'] = current_uses + 1
-                print("You used " + item_name + ". You have " + max_uses - current_uses + " uses left.")
-            else:
-                print("You have exhausted all uses of " + item_name + ".")
-        else:
-            # No usage limit, just use the item
-            print("You used " + item_name + ".")
-    else:
-        print("You don't have a " + item_name + " in your inventory.")
-    
-    print("-" * 50)
-    
+
+           
 # Function to collect an item in the current room
 def collect_item(room_name):
     global collected_items, player_attack, player_defense
@@ -284,11 +267,13 @@ def collect_item(room_name):
     if item_name not in collected_items:
         collected_items[item_name] = {
             'count': 1, 
-            'uses': collected_item.get('uses', 0),
+            'max_uses': collected_item.get('max_uses', 0),  # Keep track of the original uses
+            'uses': collected_item.get('max_uses', 0),  # Initialize uses with the max_uses value if available
             'heal': collected_item.get('heal', 0)  # Copy the 'heal' attribute
         }
     else:
         collected_items[item_name]['count'] += 1
+        collected_items[item_name]['uses'] = collected_items[item_name]['max_uses']
         
     print("You picked up a", item_name)
     print("Collected", collected_items[item_name]['count'], item_name + "(s)")
@@ -300,6 +285,42 @@ def collect_item(room_name):
         player_defense += collected_item['def']
         print("Defense increased by", collected_item['def'])
 
+# Use Healing Item
+def use_medical_item():
+    global player_health, collected_items
+    
+    healing_items = [item for item in collected_items if 'heal' in collected_items[item] and collected_items[item]['heal'] > 0 and 'uses' in collected_items[item] and 'max_uses' in collected_items[item]]
+
+    if not healing_items:
+        print("\nYou don't have any healing items to use.")
+        return
+    
+    print("\nSelect a healing item to use:")
+    for index, item in enumerate(healing_items, start=1):
+        item_data = collected_items[item]
+        print("{}. {} (Uses: {}/{}) (Heals {} HP)".format(index, item, item_data['uses'], item_data['max_uses'], item_data['heal']))
+    
+    choice = input("Enter the number of the healing item to use: ")
+    try:
+        choice_index = int(choice) - 1
+        if 0 <= choice_index < len(healing_items):
+            healing_item = healing_items[choice_index]
+            item_data = collected_items[healing_item]
+            if item_data['uses'] > 0:
+                heal_amount = item_data['heal']
+                player_health += heal_amount
+                player_health = min(player_health, 100)
+                item_data['uses'] -= 1  # Decrement the remaining uses
+                print("\nYou used a {} and gained {} health.".format(healing_item, heal_amount))
+                print("New health:", player_health)
+                if item_data['uses'] == 0:
+                    print("You have used up all the allowed uses for this item.")
+        else:
+            print("Invalid choice.")
+            
+    except ValueError:
+        print("Invalid input. Enter the number of the healing item.")
+        
 # Function to handle the event in the current room
 def handle_random_event(event_list):
     event_info = random.choice(event_list)
@@ -367,31 +388,8 @@ def handle_combat(enemy_name):
 
         # Use healing       
         elif action == 'u':
-            healing_items = [item for item in collected_items if 'heal' in collected_items[item] and collected_items[item]['heal'] > 0]
-            if not healing_items:
-                print("\nYou don't have any healing items to use.")
-            else:
-                print("\nSelect a healing item to use:")
-                for index, item in enumerate(healing_items, start=1):
-                    print(str(index) + ". " + item + " (Heals " + str(collected_items[item]['heal']) + " HP)")
-                choice = input("Enter the number of the healing item to use: ")
-                try:
-                    choice_index = int(choice) - 1
-                    if 0 <= choice_index < len(healing_items):
-                        healing_item = healing_items[choice_index]
-                        heal_amount = collected_items[healing_item]['heal']
-                        player_health += heal_amount
-                        player_health = min(player_health, 100)
-                        collected_items[healing_item]['count'] -= 1
-                        print("\nYou used a " + healing_item + " and gained " + str(heal_amount) + " health.")
-                        print("New health:", player_health)
-                        if collected_items[healing_item]['count'] <= 0:
-                            del collected_items[healing_item]
-                    else:
-                        print("Invalid choice.")
-                except ValueError:
-                    print("Invalid input. Enter the number of the healing item.")
-    
+            use_medical_item()
+            
     return None
 
 # Main Game Play
@@ -400,6 +398,7 @@ def main():
 
     while True:
         try:
+            clear_screen()  # Clear the screen at the beginning of the loop
             show_instructions()
             initialize_items()
             show_status()
@@ -413,21 +412,21 @@ def main():
                 print('You are in ' + current_room + ', your possible moves are: ' + ', '.join([move for move in dir_poss if move != 'description']))
                 direction = get_valid_direction(dir_poss)
                 current_room = rooms[current_room][direction]
+                clear_screen()  # Clear the screen before showing the new room description and status
                 show_status()
 
-                # Randomly choose between random_events (75% chance) and combat_events (25% chance)
                 if random.random() < 0.75:
                     event_list = random_events
                 else:
                     event_list = combat_events
-                    
+
                 event_result = handle_random_event(event_list)
                 if event_result == 'lose':
                     print("You were defeated in combat. Game over.")
                     break
 
             if current_room == "Outlaw Camp":
-                event_result = handle_random_event(combat_event_outlaws)  # Use the combat_event_outlaws list only in Flats
+                event_result = handle_random_event(combat_event_outlaws)
             if event_result == 'lose':
                 print("You were defeated in combat. Game over.")
                 break
@@ -437,14 +436,13 @@ def main():
                 print("\nThanks for playing the Game......")
                 break
 
-            player_health = 100   # Reset the player's health
-            player_attack = 10    # Reset the player's attack
-            player_defense = 0    # Reset the player's defense
+            player_health = 100
+            player_attack = 10
+            player_defense = 0
             current_room = "Landing Zone"
             collected_items = {}
-            
-            # Reset items in rooms
-            initialize_items()  # Add this line to reset the items in rooms
+
+            initialize_items()
 
         except (KeyError, KeyboardInterrupt):
             print("Oops! There was an error. Please contact the developer.")
@@ -455,6 +453,6 @@ def main():
 
         current_room = "Landing Zone"
         collected_items = {}
-            
+
 if __name__ == "__main__":
     main()
