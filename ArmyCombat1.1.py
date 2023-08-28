@@ -322,7 +322,7 @@ def use_medical_item():
         print("Invalid input. Enter the number of the healing item.")
         
 # Function to handle the event in the current room
-def handle_random_event(event_list):
+def handle_random_event(event_list, current_room):
     event_info = random.choice(event_list)
     event_type = event_info.get('event_type')
     description = event_info.get('description')
@@ -335,6 +335,8 @@ def handle_random_event(event_list):
         pass
     elif event_type == 'combat':
         enemy_name = event_info.get('enemy')
+        if current_room == "Outlaw Camp" and enemy_name != "Outlaws":
+            return  # Skip other encounters in Outlaw Camp
         combat_result = handle_combat(enemy_name)
 
         if combat_result == 'win':
@@ -392,6 +394,34 @@ def handle_combat(enemy_name):
             
     return None
 
+def replay_game():
+    global player_health, player_attack, player_defense, current_room, collected_items
+
+    while True:
+        try:
+            choice = input("Play again? (y/n): ").lower()
+            if choice != 'y':
+                print("\nThanks for playing the Game......")
+                break
+
+            player_health = 100
+            player_attack = 10
+            player_defense = 0
+            current_room = "Landing Zone"
+            collected_items = {}
+
+            initialize_items()
+
+        except (KeyError, KeyboardInterrupt):
+            print("Oops! There was an error. Please contact the developer.")
+            break
+        except Exception as e:
+            print("An unexpected error occurred:", str(e))
+            break
+
+        current_room = "Landing Zone"
+        collected_items = []
+
 # Main Game Play
 def main():
     global current_room, collected_items, player_health
@@ -420,29 +450,18 @@ def main():
                 else:
                     event_list = combat_events
 
-                event_result = handle_random_event(event_list)
+                event_result = handle_random_event(event_list, current_room)
                 if event_result == 'lose':
                     print("You were defeated in combat. Game over.")
                     break
 
             if current_room == "Outlaw Camp":
-                event_result = handle_random_event(combat_event_outlaws)
-            if event_result == 'lose':
-                print("You were defeated in combat. Game over.")
-                break
+                event_result = handle_random_event(combat_event_outlaws, current_room)
+                if event_result == 'lose':
+                    print("You were defeated in combat. Game over.")
+                    break
 
-            choice = input("Play again? (y/n): ").lower()
-            if choice != 'y':
-                print("\nThanks for playing the Game......")
-                break
-
-            player_health = 100
-            player_attack = 10
-            player_defense = 0
-            current_room = "Landing Zone"
-            collected_items = {}
-
-            initialize_items()
+            replay_game()
 
         except (KeyError, KeyboardInterrupt):
             print("Oops! There was an error. Please contact the developer.")
