@@ -1,7 +1,7 @@
 👋 Hi, I’m Chris
 I am an IT professional that has 20+ years of experience. I have had to use scripting for numerous task, and figured I would share some of the things I have written.
 
-This Branch is for scripts that can be run using Python
+This Branch is for scripts that can be run using Python. In the TechSmart folder are programs I have written using the TechSmart Platform to show my students for thier Unit Projects.
 
 
 <!---
