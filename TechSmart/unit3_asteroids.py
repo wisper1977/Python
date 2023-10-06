@@ -1,7 +1,7 @@
 """
 Unit 3 Project: Asteroids
 
-Description:
+Description: Classic Game of Asteroids with the TechSmart twist.
 """
 
 # Imports
