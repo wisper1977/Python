@@ -1,7 +1,7 @@
 """
 Unit 3 Project: Asteroids
 
-Description: Classic Game of Asteroids with the TechSmart twist.
+Description:
 """
 
 # Imports
@@ -27,12 +27,12 @@ window.add_object(score_text)
 ship.angle = 0
 
 # Start spawning asteroids
-for i in range(2):
+for i in range(4):
     
     # Generate random position for the asteroid while ensuring it's not too close to the ship
     while True:
-        x = random.randint(0, window.width)
-        y = random.randint(0, window.height)
+        x = random.randint(0, 700)
+        y = random.randint(0, 475)
         min_distance = 200  # Minimum distance between asteroid and ship
         if math.sqrt((x - ship.x) ** 2 + (y - ship.y) ** 2) >= min_distance:
             break
@@ -81,7 +81,7 @@ while window.is_running and not game_over:
         ship.angle -= 5
 
     ## -- Fire Bullet -- ##
-    if tsapp.was_key_pressed(tsapp.K_SPACE):
+    if tsapp.is_key_down(tsapp.K_SPACE):
         bullet_speed = 150  # Adjust bullet speed as needed
         
         # Convert ship.angle to radians (ship.angle is in degrees)
@@ -91,8 +91,9 @@ while window.is_running and not game_over:
         angle_radians = angle_degrees * 3.141592653589793 / 180.0
         
         # Calculate the horizontal and vertical components of the speed vector
-        bullet_x_speed = bullet_speed * (angle_radians == 0 and 0 or (angle_degrees > 0 and 1 or -1))
-        bullet_y_speed = bullet_speed * (angle_radians == 0 and 1 or (angle_degrees > 0 and 1 or -1))
+        bullet_x_speed = -bullet_speed * math.sin(angle_radians)
+        bullet_y_speed = -bullet_speed * math.cos(angle_radians)
+
         
         bullet = tsapp.Sprite("NumberDecimalRed.png", ship.x, ship.y-50)
         bullet.x_speed = bullet_x_speed
@@ -106,11 +107,11 @@ while window.is_running and not game_over:
         y = asteroid.center_y
         
         # Check if the asteroid hits the left or right boundary
-        if x < 0 or x > 1018:
+        if x < 127 or x > 891:
             asteroid.x_speed = -asteroid.x_speed  # Reverse horizontal speed
         
         # Check if the asteroid hits the top or bottom boundary
-        if y < 0 or y > 573:
+        if y < 98 or y > 475:
             asteroid.y_speed = -asteroid.y_speed  # Reverse vertical speed
             
         # Check for collision between ship and asteroid
