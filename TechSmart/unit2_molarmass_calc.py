@@ -1,86 +1,105 @@
-"""
-Molar Mass Calaculator
+# Initialize molar mass
+molar_mass = 0
 
-Description:
-"""
-#Setup
-import periodic_table
-import re
+# Process the formula element by element
 
-#Instructions
-print("Welcome to the Molar Mass Calculator!!")
-print("Please enter your Chemical Compound in the following format.")
-print("  1. Enter each element with a space between each.\n  2. Add a atom to each element.\n  3. Only four elements per compound.")
-print("Example: Na2 C1 O3")
-print("")
+# First element
+element = input("Enter the first element in the formula: ")
+count = int(input("Enter the count for the first element (1 if not specified): "))
 
-#Ask user for compounds (Input)
-compound_input = input("Enter a Chemical Compound. ")
-compound_input = compound_input.title()
-compound_molarmass = 0
+# Determine the atomic mass for the first element
+if element == "H":
+    atomic_mass = 1.0079
+elif element == "He":
+    atomic_mass = 4.0026
+elif element == "Li":
+    atomic_mass = 6.941
+elif element == "Be":
+    atomic_mass = 9.0122
+elif element == "B":
+    atomic_mass = 10.81
+elif element == "C":
+    atomic_mass = 12.01
+elif element == "N":
+    atomic_mass = 14.01
+elif element == "O":
+    atomic_mass = 16.00
+elif element == "F":
+    atomic_mass = 19.00
+elif element == "Ne":
+    atomic_mass = 20.18
+elif element == "Na":
+    atomic_mass = 22.99
+elif element == "Mg":
+    atomic_mass = 24.31
+elif element == "Al":
+    atomic_mass = 26.98
+elif element == "Si":
+    atomic_mass = 28.09
+elif element == "P":
+    atomic_mass = 30.97
+elif element == "S":
+    atomic_mass = 32.07
+elif element == "Cl":
+    atomic_mass = 35.45
+elif element == "K":
+    atomic_mass = 39.10
+elif element == "Ar":
+    atomic_mass = 39.95
+# Add more elements and their atomic masses here
 
-#Create Lists and Positions
-compoundElementList = compound_input.split()
-compoundElementList = [
-    re.sub(r'[0-9]+', '', item) for item in compoundElementList
-]
-number_compounds = len(compoundElementList)
-compoundAtomsList = re.findall(r'\d',compound_input)
+# Calculate the molar mass for the first element
+molar_mass += atomic_mass * count
 
-#Get data for calculation
-if number_compounds >= 1:
-    element_1_symbol = "periodic_table." + compoundElementList[0] + ".Symbol"
-    element_1_name = "periodic_table." + compoundElementList[0] + ".Name"
-    element_1_am = "periodic_table." + compoundElementList[0] + ".AtomicMass"
-    element_1_am = eval(element_1_am).strip(" amu")
-    element_1_atom = compoundAtomsList[0]
-    if number_compounds >= 2:
-        element_2_symbol = "periodic_table." + compoundElementList[1] + ".Symbol"
-        element_2_name = "periodic_table." + compoundElementList[1] + ".Name"
-        element_2_am = "periodic_table." + compoundElementList[1] + ".AtomicMass"
-        element_2_am = eval(element_2_am).strip(" amu")
-        element_2_atom = compoundAtomsList[1]
-        if number_compounds >= 3:
-            element_3_symbol = "periodic_table." + compoundElementList[2] + ".Symbol"
-            element_3_name = "periodic_table." + compoundElementList[2] + ".Name"
-            element_3_am = "periodic_table." + compoundElementList[2] + ".AtomicMass"
-            element_3_am = eval(element_3_am).strip(" amu")
-            element_3_atom = compoundAtomsList[2]
-            if number_compounds >= 4:
-                element_4_symbol = "periodic_table." + compoundElementList[3] + ".Symbol"
-                element_4_name = "periodic_table." + compoundElementList[3] + ".Name"
-                element_4_am = "periodic_table." + compoundElementList[3] + ".AtomicMass"
-                element_4_am = eval(element_4_am).strip(" amu")
-                element_4_atom = compoundAtomsList[3]
+# Check for a second element and its count
+element = input("Enter the second element in the formula (leave empty if none): ")
 
-#Reformat compound
-compound_input = re.sub(r"\s+", "", compound_input)
-compound = eval(element_1_symbol)
-compound += element_1_atom
+if element:
+    count = int(input("Enter the count for the second element (1 if not specified): "))
 
-#Calculations
-if number_compounds >= 1:
-    element_1_molarmass = float(element_1_am) * int(element_1_atom)
-    compound_molarmass += element_1_molarmass
-    if number_compounds >= 2:
-        element_2_molarmass = float(element_2_am) * int(element_2_atom)
-        compound_molarmass += element_2_molarmass
-        if number_compounds >= 3:
-            element_3_molarmass = float(element_3_am) * int(element_3_atom)
-            compound_molarmass += element_3_molarmass
-            if number_compounds >= 4:
-                element_4_molarmass = float(element_4_am) * int(element_4_atom)
-                compound_molarmass += element_4_molarmass
-             
-#Output
-print("")
-if number_compounds >= 1:
-    print("The molar mass of " + eval(element_1_name) + " (" + eval(element_1_symbol) + ") with " + element_1_atom + " atoms, is: " + str(element_1_molarmass) + "g/mole")
-    if number_compounds >= 2:
-        print("The molar mass of " + eval(element_2_name) + " (" + eval(element_2_symbol) + ") with " + element_2_atom + " atoms, is: " + str(element_2_molarmass) + "g/mole")
-        if number_compounds >= 3:
-            print("The molar mass of " + eval(element_3_name) + " (" + eval(element_3_symbol) + ") with " + element_3_atom + " atoms, is: " + str(element_3_molarmass) + "g/mole")
-            if number_compounds >= 4:
-                print("The molar mass of " + eval(element_4_name) + " (" + eval(element_4_symbol) + ") with " + element_4_atom + " atoms, is: " + str(element_4_molarmass) + "g/mole")
-print("")
-print("The molar mass of " + compound_input + " is: " + str(compound_molarmass) + " g/mole")
+    # Determine the atomic mass for the second element
+    if element == "H":
+        atomic_mass = 1.0079
+    elif element == "He":
+        atomic_mass = 4.0026
+    elif element == "Li":
+        atomic_mass = 6.941
+    elif element == "Be":
+        atomic_mass = 9.0122
+    elif element == "B":
+        atomic_mass = 10.81
+    elif element == "C":
+        atomic_mass = 12.01
+    elif element == "N":
+        atomic_mass = 14.01
+    elif element == "O":
+        atomic_mass = 16.00
+    elif element == "F":
+        atomic_mass = 19.00
+    elif element == "Ne":
+        atomic_mass = 20.18
+    elif element == "Na":
+        atomic_mass = 22.99
+    elif element == "Mg":
+        atomic_mass = 24.31
+    elif element == "Al":
+        atomic_mass = 26.98
+    elif element == "Si":
+        atomic_mass = 28.09
+    elif element == "P":
+        atomic_mass = 30.97
+    elif element == "S":
+        atomic_mass = 32.07
+    elif element == "Cl":
+        atomic_mass = 35.45
+    elif element == "K":
+        atomic_mass = 39.10
+    elif element == "Ar":
+        atomic_mass = 39.95
+    # Add more elements and their atomic masses here
+
+    # Calculate the molar mass for the second element
+    molar_mass += atomic_mass * count
+
+# Print the calculated molar mass
+print("The molar mass of the compound is approximately {:.2f} g/mol.".format(molar_mass))
