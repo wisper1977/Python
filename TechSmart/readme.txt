@@ -14,5 +14,8 @@ Unit5_DND_Random_Character.py
 
     This program is not complete yet, there are many things that do not work properly.
 
+Unit5_Molar_Mass_calc
+    This program is not complete yet, there are many things that do not work properly.
+
 Unit6_Passowrd_Checker.py
     This program is designed to check the strength of a password based on certain criteria.
