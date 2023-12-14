@@ -1,3 +1,4 @@
+
 import requests
 import random
 
@@ -44,7 +45,7 @@ while True:
         race_bonuses = character_race.get("ability_bonuses", [])
 
         # Set initial attribute scores
-        attributes = {
+        base_attributes = {
             "Strength": 8,
             "Dexterity": 8,
             "Constitution": 8,
@@ -53,7 +54,20 @@ while True:
             "Charisma": 8
         }
 
-        # Apply race attribute bonuses
+        # Set attributes for point buy
+        attributes = base_attributes.copy()
+
+        # Initialize remaining points
+        remaining_points = 27  # or any other initial value
+
+        # Distribute points to attributes
+        while remaining_points > 0:
+            random_attribute = random.choice(list(attributes.keys()))
+            increase_amount = random.randint(1, min(remaining_points, 5))
+            attributes[random_attribute] += increase_amount
+            remaining_points -= increase_amount
+
+        # Apply racial modifiers to attributes
         for bonus in race_bonuses:
             attribute_data = fetch_data(base_url + bonus["url"])
             if attribute_data:
@@ -102,18 +116,20 @@ while True:
                 print("Allocating a point to {}".format(random_skill))
                 # You can perform further logic here based on how you want to handle skill points
 
-        while remaining_points > 0:
-            random_attribute = random.choice(list(attributes.keys()))
-            increase_amount = random.randint(1, min(remaining_points, 5))
-            attributes[random_attribute] += increase_amount
-            remaining_points -= increase_amount
-
         print("\nRandomly Generated Character:")
         print("Class: {}".format(character_class["name"]))
         print("Race: {}".format(character_race['name']))
-        print("Final Attributes:")
-        for attribute, value in attributes.items():
-            print("{}: {}".format(attribute, value))
+        
+                # Print final attributes with formulas
+        print("Attributes (Total = Base + Point Buy + Racial):")
+        
+        for attribute in attributes:
+            base_value = base_attributes[attribute]
+            point_buy_value = attributes[attribute] - base_value
+            racial_modifier = bonus["bonus"] if attribute in race_bonuses else 0
+            total_value = base_value + point_buy_value + racial_modifier
+            print("\t{}: {} = {} + {} + {}".format(attribute, total_value, base_value, point_buy_value, racial_modifier))
+            
         print("Class Skills:")
         for skill in class_skills:
             print(skill)
