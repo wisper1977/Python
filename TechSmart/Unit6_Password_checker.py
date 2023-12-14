@@ -42,12 +42,8 @@ def check_additional_criteria(password):
 
     return has_uppercase and has_lowercase and has_digit
 
-def main():
-    password = input("Enter your password: ")
-    min_length = int(input("Enter the minimum password length (press Enter for default): ") or 8)
+password = input("Enter your password: ")
+min_length = int(input("Enter the minimum password length (press Enter for default): ") or 8)
 
-    result = check_password_strength(password, min_length)
-    print(result)
-
-if __name__ == "__main__":
-    main()
+result = check_password_strength(password, min_length)
+print(result)
