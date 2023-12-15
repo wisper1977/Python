@@ -29,3 +29,11 @@ This program is not complete yet, there are many things that do not work properl
 # Unit6_Passowrd_Checker.py
 
 This program is designed to check the strength of a password based on certain criteria.
+
+## Criteria
+
+- Use at least three user-defined functions
+- Use at least one variable with a default value
+- Use at least on variable-length parameter
+- Modify a variable as a function side effect using the global keyword or pass-by-referenece
+- Document at least one function using a doctring
