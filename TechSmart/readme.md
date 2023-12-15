@@ -1,5 +1,9 @@
 These files are using the TechSmart Coding platform. These are for instructional purposes to show students a sample of projects and how they can be achieved.
 
+# Unit 1
+
+Unit one does not have a project associated with it, but these programs are what are learned.
+
 ## Unit1_MadLibs.py
 
 This Python program generates a Madlib story by prompting the user to input words for various categories such as adjectives, foods, vehicles, verbs, colors, nouns, and more. The program then uses these inputs to fill in the blanks of a pre-defined story template, creating a humorous or nonsensical story. Finally, it prints out the completed Madlib story.
