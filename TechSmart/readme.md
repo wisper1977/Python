@@ -28,19 +28,21 @@ This program is a simple contact manager that allows users to perform various op
 
 # Unit 5
 
+### Criteria
+
+- Use the requests library to load data from a web API
+- Allow the user to make one or more choices to determine what specific information is requested
+- Present the information in an easy to understand format
+
 ## Unit5_DND_Random_Character.py
 
 This program uses the D&D 5e API to fetch data about classes, races, and skills. The character's attributes are generated based on a combination of a base score, point buy distribution, and racial modifiers. The program also considers class-specific attribute priorities and randomly allocates points to class skills.
 
 This program is not complete yet, there are many things that do not work properly.
 
-### Criteria
-
 ## Unit5_Molar_Mass_calc.py
 
 This program is not complete yet, there are many things that do not work properly.
-
-### Criteria
 
 # Unit6_Password_Checker.py
 
