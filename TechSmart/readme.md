@@ -18,19 +18,29 @@ This program calculates the molar mass of a chemical compound based on the user'
 
 This program is a simple 2D game called "Asteroids." It uses the tsapp library for graphics and user input. The game involves a spaceship (controlled by the user) that can move horizontally and vertically, rotate, and shoot bullets. The objective is to destroy asteroids that appear on the screen.
 
+## Criteria
+
 # Unit4_contact.py
 
 This program is a simple contact manager that allows users to perform various operations on a list of contacts. 
 
-# Unit5_DND_Random_Character.py
+## Criteria
+
+# Unit 5
+
+## Unit5_DND_Random_Character.py
 
 This program uses the D&D 5e API to fetch data about classes, races, and skills. The character's attributes are generated based on a combination of a base score, point buy distribution, and racial modifiers. The program also considers class-specific attribute priorities and randomly allocates points to class skills.
 
 This program is not complete yet, there are many things that do not work properly.
 
-# Unit5_Molar_Mass_calc.py
+### Criteria
+
+## Unit5_Molar_Mass_calc.py
 
 This program is not complete yet, there are many things that do not work properly.
+
+### Criteria
 
 # Unit6_Password_Checker.py
 
