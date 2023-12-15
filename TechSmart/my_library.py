@@ -16,13 +16,13 @@ def wait_seconds(seconds):
     pygame.time.wait(seconds * 1000)
     
 # tsapp Function to create a countdown clock    
-def ts_countdown(seconds):
+def ts_countdown(seconds, font="Roboto-Black.ttf", position=(100, 100), initial_color=tsapp.BLUE, countdown_color=tsapp.RED):
     # Create a window
     window = tsapp.GraphicsWindow()
 
     # Create a TextLabel
-    countdown = tsapp.TextLabel("Roboto-Black.ttf", 100, 100, 100, 100, str(seconds), tsapp.BLUE)
-    timesup = tsapp.TextLabel("Roboto-Black.ttf", 100, 100, 100, 800, "Time is up!!", tsapp.RED)
+    countdown = tsapp.TextLabel(font, position[0], position[1], 100, 100, str(seconds), initial_color)
+    timesup = tsapp.TextLabel(font, position[0], position[1], 100, 800, "Time is up!!", tsapp.RED)
 
     def update_countdown_text(i):
         countdown.text = str(i)
@@ -35,7 +35,7 @@ def ts_countdown(seconds):
         update_countdown_text(i)
 
         if 1 <= i <= 3:
-            countdown.color = tsapp.RED
+            countdown.color = countdown_color
 
         elif i == 0:
             window.add_object(timesup)
@@ -43,4 +43,3 @@ def ts_countdown(seconds):
 
         wait_seconds(1)
         window.finish_frame()
-        
