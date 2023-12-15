@@ -20,6 +20,11 @@ This program is a simple 2D game called "Asteroids." It uses the tsapp library f
 
 ## Criteria
 
+- Use at least one while loop and one for loop
+- Use at least one loop control statement (break, continue, or else)
+- Use at least three sprites within a tsapp GraphicsWindow
+- Use keyboard or mouse input
+
 # Unit4_contact.py
 
 This program is a simple contact manager that allows users to perform various operations on a list of contacts. 
