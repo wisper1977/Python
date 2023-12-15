@@ -27,9 +27,9 @@ This program is a simple contact manager that allows users to perform various op
 ## Criteria
 
 - Use a list to store a collection of user data; some examples of common user data include:
--- names
--- phone numbers
--- addresses 
+  - names
+  - phone numbers
+  - addresses 
 - Use at least one list method or function that operates on lists
 - Modify strings with string methods or slicing
 
