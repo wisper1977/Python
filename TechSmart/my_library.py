@@ -17,31 +17,30 @@ def wait_seconds(seconds):
     
 # tsapp Function to create a countdown clock    
 def ts_countdown(seconds):
-   
     # Create a window
-    window = tsapp.GraphicsWindow() 
+    window = tsapp.GraphicsWindow()
 
-    # Create a TextLabel  
+    # Create a TextLabel
     countdown = tsapp.TextLabel("Roboto-Black.ttf", 100, 100, 100, 100, str(seconds), tsapp.BLUE)
     timesup = tsapp.TextLabel("Roboto-Black.ttf", 100, 100, 100, 800, "Time is up!!", tsapp.RED)
-    
+
+    def update_countdown_text(i):
+        countdown.text = str(i)
+
     # Add the text to the scene
     window.add_object(countdown)
-    
+
     # Main loop
-    for i in range (seconds,-1,-1):
-        
-        # Every 30 frames, if i is greater than 0, subtract 1 from the countdown
-        if i > 0:
-            countdown.text = str(i)
-            wait_seconds(1)
-        
+    for i in range(seconds, -1, -1):
+        update_countdown_text(i)
+
         if 1 <= i <= 3:
             countdown.color = tsapp.RED
-            
+
         elif i == 0:
             window.add_object(timesup)
             countdown.visible = False
-            
+
+        wait_seconds(1)
         window.finish_frame()
         
