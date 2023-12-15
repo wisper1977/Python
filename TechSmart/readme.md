@@ -6,9 +6,15 @@ This Python program generates a Madlib story by prompting the user to input word
 
 # Unit2_molarmass_calc.py
 
+This program calculates the molar mass of a chemical compound based on the user's input of its chemical formula. The user is prompted to enter elements and their respective counts in the formula. The program then looks up the atomic masses of the entered elements and calculates the molar mass of the compound. The molar masses of individual elements are hard-coded into the program.
+
 # Unit3_asteroids.py
 
+This program is a simple 2D game called "Asteroids." It uses the tsapp library for graphics and user input. The game involves a spaceship (controlled by the user) that can move horizontally and vertically, rotate, and shoot bullets. The objective is to destroy asteroids that appear on the screen.
+
 # Unit4_contact.py
+
+This program is a simple contact manager that allows users to perform various operations on a list of contacts. 
 
 # Unit5_DND_Random_Character.py
 
