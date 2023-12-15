@@ -8,6 +8,12 @@ This Python program generates a Madlib story by prompting the user to input word
 
 This program calculates the molar mass of a chemical compound based on the user's input of its chemical formula. The user is prompted to enter elements and their respective counts in the formula. The program then looks up the atomic masses of the entered elements and calculates the molar mass of the compound. The molar masses of individual elements are hard-coded into the program.
 
+## Criteria
+
+- Use conditional syntax to make decisions
+- Use code from a built-in library such as math or random
+- Use boolean logic to make a complex decision using an and, or, or not operator
+
 # Unit3_asteroids.py
 
 This program is a simple 2D game called "Asteroids." It uses the tsapp library for graphics and user input. The game involves a spaceship (controlled by the user) that can move horizontally and vertically, rotate, and shoot bullets. The objective is to destroy asteroids that appear on the screen.
@@ -26,7 +32,7 @@ This program is not complete yet, there are many things that do not work properl
 
 This program is not complete yet, there are many things that do not work properly.
 
-# Unit6_Passowrd_Checker.py
+# Unit6_Password_Checker.py
 
 This program is designed to check the strength of a password based on certain criteria.
 
