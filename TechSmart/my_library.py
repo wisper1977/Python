@@ -84,21 +84,34 @@ def update_countdown_text(i):
         wait_seconds(1)
         window.finish_frame()
 
-def call_api(api_url, params=None):
+import requests
+
+def call_api(url, method='GET', params=None, headers=None, timeout=10):
     """
     Calls an API and returns the response.
 
     Args:
-        api_url (str): The URL of the API.
+        url (str): The URL of the API.
+        method (str): The HTTP method to be used (GET, POST, PUT, DELETE, etc.).
         params (dict, optional): Parameters to be sent with the request.
+        headers (dict, optional): Headers to be sent with the request.
+        timeout (int, optional): Timeout for the request in seconds.
 
     Returns:
         dict: The JSON response from the API.
     """
     try:
-        response = requests.get(api_url, params=params)
+        response = requests.request(method, url, params=params, headers=headers, timeout=timeout)
         response.raise_for_status()  # Raise an exception for HTTP errors
         return response.json()
+    except requests.exceptions.Timeout:
+        print("Timeout error: The request to", url, "timed out.")
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
-        return None
+        print("Error:", e)
+    return None
+
+# Example usage:
+api_url = "https://jsonplaceholder.typicode.com/posts/1"
+response_data = call_api(api_url)
+if response_data:
+    print(response_data)
