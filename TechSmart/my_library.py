@@ -7,11 +7,9 @@ Functions:
     - clear_screen(): Clears the console screen.
     - wait_seconds(seconds): Pauses the program execution for the specified number of seconds.
     - ts_countdown(seconds, font="Roboto-Black.ttf", position=(100, 100), initial_color=tsapp.BLUE, countdown_color=tsapp.RED): Displays a countdown timer on a graphics window.
-    - call_api(url, method='GET', params=None, headers=None, timeout=10): Calls an API and returns the response.
-    - parse_api_response(api_response): Parses an API response and converts it into a list of dictionaries.
 """
 
-import tsapp, random, time, sys, os, pygame, requests
+import tsapp, random, time, sys, os, pygame
 
 # Function to clear screen
 def clear_screen():
@@ -91,55 +89,6 @@ def update_countdown_text(i):
         wait_seconds(1)
         window.finish_frame()
 
-import requests
-
-def call_api(url, method='GET', params=None, headers=None, timeout=10):
-    """
-    Calls an API and returns the response.
-
-    Args:
-        url (str): The URL of the API.
-        method (str): The HTTP method to be used (GET, POST, PUT, DELETE, etc.).
-        params (dict, optional): Parameters to be sent with the request.
-        headers (dict, optional): Headers to be sent with the request.
-        timeout (int, optional): Timeout for the request in seconds.
-
-    Returns:
-        dict: The JSON response from the API.
-    """
-    try:
-        response = requests.request(method, url, params=params, headers=headers, timeout=timeout)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        return response.json()
-    except requests.exceptions.Timeout:
-        print("Timeout error: The request to", url, "timed out.")
-    except requests.exceptions.RequestException as e:
-        print("Error:", e)
-    return None
-
-def parse_api_response(api_response):
-    """
-    Parses an API response and converts it into a list of dictionaries.
-
-    Args:
-        api_response (dict): The API response in JSON format.
-
-    Returns:
-        list of dict: A list of dictionaries representing the data from the API response.
-    """
-    try:
-        data = api_response.json()
-        if isinstance(data, list):
-            return data
-        elif isinstance(data, dict):
-            return [data]
-        else:
-            print("API response format not recognized.")
-            return []
-    except ValueError:
-        print("Unable to parse API response as JSON.")
-        return []
-
 if __name__ == "__main__":
     # Test the functions here
     
@@ -154,11 +103,3 @@ if __name__ == "__main__":
     # Test ts_countdown function
     ts_countdown(5)
     print("Countdown completed.")
-
-    # Test call_api function
-    response = call_api("https://jsonplaceholder.typicode.com/posts/1")
-    print("API response:", response)
-
-    # Test parse_api_response function
-    parsed_data = parse_api_response(response)
-    print("Parsed data:", parsed_data)
