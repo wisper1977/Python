@@ -1,7 +1,7 @@
 """
 my_library
 
-Description: This module provides a collection of utility functions for various tasks including file handling, API calls, data manipulation, and more.
+Description: This module provides utility functions for various tasks such as clearing the console screen, pausing program execution, and displaying countdown timers.
 
 Functions:
     - clear_screen(): Clears the console screen.
