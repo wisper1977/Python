@@ -8,6 +8,7 @@ Functions:
     - wait_seconds(seconds): Pauses the program execution for the specified number of seconds.
     - ts_countdown(seconds, font="Roboto-Black.ttf", position=(100, 100), initial_color=tsapp.BLUE, countdown_color=tsapp.RED): Displays a countdown timer on a graphics window.
     - call_api(url, method='GET', params=None, headers=None, timeout=10): Calls an API and returns the response.
+    - parse_api_response(api_response): Parses an API response and converts it into a list of dictionaries.
     - read_csv(file_path): Read data from a CSV file.
     - write_csv(file_path, data, fieldnames): Write data to a CSV file.
     - read_json(file_path): Read data from a JSON file.
@@ -120,11 +121,28 @@ def call_api(url, method='GET', params=None, headers=None, timeout=10):
         print("Error:", e)
     return None
 
-# Example usage:
-api_url = "https://jsonplaceholder.typicode.com/posts/1"
-response_data = call_api(api_url)
-if response_data:
-    print(response_data)
+def parse_api_response(api_response):
+    """
+    Parses an API response and converts it into a list of dictionaries.
+
+    Args:
+        api_response (dict): The API response in JSON format.
+
+    Returns:
+        list of dict: A list of dictionaries representing the data from the API response.
+    """
+    try:
+        data = api_response.json()
+        if isinstance(data, list):
+            return data
+        elif isinstance(data, dict):
+            return [data]
+        else:
+            print("API response format not recognized.")
+            return []
+    except ValueError:
+        print("Unable to parse API response as JSON.")
+        return []
 
 def read_csv(file_path):
     """
@@ -188,3 +206,43 @@ def write_json(file_path, data):
     """
     with open(file_path, 'w') as json_file:
         json.dump(data, json_file, indent=4)
+
+if __name__ == "__main__":
+    # Test the functions here
+    # For example:
+    
+    # Test clear_screen function
+    clear_screen()
+    print("Console screen cleared.")
+
+    # Test wait_seconds function
+    wait_seconds(3)
+    print("Waited for 3 seconds.")
+
+    # Test ts_countdown function
+    ts_countdown(5)
+    print("Countdown completed.")
+
+    # Test call_api function
+    response = call_api("https://jsonplaceholder.typicode.com/posts/1")
+    print("API response:", response)
+
+    # Test parse_api_response function
+    parsed_data = parse_api_response(response)
+    print("Parsed data:", parsed_data)
+
+    # Test read_csv function
+    csv_data = read_csv("example.csv")
+    print("CSV data:", csv_data)
+
+    # Test write_csv function
+    write_csv("example_output.csv", csv_data, ['name', 'age', 'city'])
+    print("CSV data written to 'example_output.csv'.")
+
+    # Test read_json function
+    json_data = read_json("example.json")
+    print("JSON data:", json_data)
+
+    # Test write_json function
+    write_json("example_output.json", json_data)
+    print("JSON data written to 'example_output.json'.")
