@@ -209,7 +209,6 @@ def write_json(file_path, data):
 
 if __name__ == "__main__":
     # Test the functions here
-    # For example:
     
     # Test clear_screen function
     clear_screen()
