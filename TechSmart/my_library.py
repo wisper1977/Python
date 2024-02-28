@@ -1,10 +1,20 @@
 """
 my_library
 
-Description:
+Description: This module provides a collection of utility functions for various tasks including file handling, API calls, data manipulation, and more.
+
+Functions:
+    - clear_screen(): Clears the console screen.
+    - wait_seconds(seconds): Pauses the program execution for the specified number of seconds.
+    - ts_countdown(seconds, font="Roboto-Black.ttf", position=(100, 100), initial_color=tsapp.BLUE, countdown_color=tsapp.RED): Displays a countdown timer on a graphics window.
+    - call_api(url, method='GET', params=None, headers=None, timeout=10): Calls an API and returns the response.
+    - read_csv(file_path): Read data from a CSV file.
+    - write_csv(file_path, data, fieldnames): Write data to a CSV file.
+    - read_json(file_path): Read data from a JSON file.
+    - write_json(file_path, data): Write data to a JSON file.
 """
 
-import tsapp, random, time, sys, os, pygame, requests
+import tsapp, random, time, sys, os, pygame, requests, csv, json
 
 # Function to clear screen
 def clear_screen():
@@ -115,3 +125,66 @@ api_url = "https://jsonplaceholder.typicode.com/posts/1"
 response_data = call_api(api_url)
 if response_data:
     print(response_data)
+
+def read_csv(file_path):
+    """
+    Read data from a CSV file.
+
+    Args:
+        file_path (str): Path to the CSV file.
+
+    Returns:
+        list of dict: List of dictionaries representing rows of data from the CSV file.
+    """
+    data = []
+    with open(file_path, 'r', newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data.append(row)
+    return data
+
+def write_csv(file_path, data, fieldnames):
+    """
+    Write data to a CSV file.
+
+    Args:
+        file_path (str): Path to the CSV file.
+        data (list of dict): Data to be written to the CSV file.
+        fieldnames (list of str): Field names for the CSV file.
+
+    Returns:
+        None
+    """
+    with open(file_path, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in data:
+            writer.writerow(row)
+
+def read_json(file_path):
+    """
+    Read data from a JSON file.
+
+    Args:
+        file_path (str): Path to the JSON file.
+
+    Returns:
+        dict: Data read from the JSON file.
+    """
+    with open(file_path, 'r') as json_file:
+        data = json.load(json_file)
+    return data
+
+def write_json(file_path, data):
+    """
+    Write data to a JSON file.
+
+    Args:
+        file_path (str): Path to the JSON file.
+        data (dict): Data to be written to the JSON file.
+
+    Returns:
+        None
+    """
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
