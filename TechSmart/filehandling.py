@@ -1,7 +1,7 @@
 """
 filehandling
 
-Description: This module provides a collection of utility functions for various tasks including file handling, API calls, data manipulation, and more.
+Description: This module provides utility functions for file handling operations, including reading from and writing to CSV and JSON files.
 
 Functions:
     - read_csv(file_path): Read data from a CSV file.
