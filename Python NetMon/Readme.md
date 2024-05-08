@@ -95,13 +95,6 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 
 ## Version History
 
-### v1.1.2 - Beta
-**Release Date:** TBD
-Current Updates:
-- Added log viewer with options to refresh and clear logs, including confirmation dialog.
-- Centered control buttons in the log viewer for better user interaction.
-- Enhanced logging details for better traceability and diagnostics.
-
 ### v1.1.1 - Current Version
 **Release Date:** May 8, 2024
 Security Enhancements:
