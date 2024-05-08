@@ -42,7 +42,6 @@ No additional installation required if you have Python installed.
 ## Usage
 To run the application, navigate to the directory containing the script and run:
 
-   ```bash
    python netmon1.1.1.py
 
 ## Adding a New Device
@@ -81,3 +80,34 @@ To remove a device from the monitoring list:
 3. A confirmation dialog will appear asking if you are sure about removing the device.
 4. Click "Yes" to remove the device permanently.
 5. The device will be removed from the list and will no longer be monitored.
+
+## Keyboard Shortcuts
+
+The application supports several keyboard shortcuts to make navigation and operations faster and more convenient:
+
+- **Ctrl + N**: Open the dialog to add a new device.
+- **Ctrl + E**: Edit the selected device.
+- **Ctrl + D**: Delete the selected device.
+- **Ctrl + S**: Open settings.
+- **F1**: Open online help or documentation.
+
+Make sure a device is selected in the main window for edit or delete shortcuts to work.
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/wisper1977/Python/blob/main/Python%20NetMon%201.1.0/LICENSE) file for details.
