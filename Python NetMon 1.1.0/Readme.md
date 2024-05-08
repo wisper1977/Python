@@ -39,7 +39,7 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
 
 No additional installation required if you have Python installed.
 
-##Usage
+## Usage
 To run the application, navigate to the directory containing the script and run:
 
    ```bash
