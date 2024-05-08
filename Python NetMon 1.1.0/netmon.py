@@ -284,7 +284,9 @@ class Application(tk.Frame):
             self.tree.column(col, anchor='center')
             
         # Configuring the column widths can be optional, add if needed:
-        # self.tree.column("Key", width=50)
+        # Hide the 'Key' column while still using it in the background
+        self.tree.heading("Key", text="Key")
+        self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)  # Set width and stretch to minimize and hide the column
         # self.tree.column("Location", width=100)
         # self.tree.column("Name", width=120)
         # self.tree.column("IP", width=100)
