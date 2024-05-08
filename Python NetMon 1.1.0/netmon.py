@@ -4,7 +4,6 @@ from queue import Queue, Empty
 from threading import Thread
 from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
-from logging.handlers import RotatingFileHandler
 
 version = "1.1.0"
 hyperlink = "https://tinyurl.com/PythonNetMon"
