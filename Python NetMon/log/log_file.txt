@@ -1,0 +1,203 @@
+
+2024-05-08 07:09:08,125 - DEBUG - Config file loaded successfully.
+2024-05-08 07:09:08,157 - DEBUG - Refresh interval set to 60 seconds based on ping attempts.
+2024-05-08 07:10:08,464 - DEBUG - IP 10.2.34.1 queued for pinging
+2024-05-08 07:10:08,464 - DEBUG - Processing ping for IP: 10.2.34.1
+2024-05-08 07:10:08,464 - DEBUG - IP 2.2.2.2 queued for pinging
+2024-05-08 07:10:08,464 - DEBUG - Processing ping for IP: 2.2.2.2
+2024-05-08 07:10:08,464 - DEBUG - Starting ping for IP: 10.2.34.1
+2024-05-08 07:10:08,464 - INFO - Successfully refreshed all devices.
+2024-05-08 07:10:08,464 - DEBUG - Starting ping for IP: 2.2.2.2
+2024-05-08 07:10:12,589 - DEBUG - Ping completed for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=18ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=26ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=19ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=13ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 9ms, Maximum = 26ms, Average = 17ms
+ STDERR: 
+2024-05-08 07:10:12,594 - DEBUG - Ping command result for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=18ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=26ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=19ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=13ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 9ms, Maximum = 26ms, Average = 17ms
+ STDERR: 
+2024-05-08 07:10:12,600 - DEBUG - Updating status for IP 10.2.34.1 to Online, Avg ping: 17.00 ms
+2024-05-08 07:15:17,901 - DEBUG - Config file loaded successfully.
+2024-05-08 07:15:17,918 - DEBUG - Refresh interval set to 60 seconds based on ping attempts.
+2024-05-08 07:16:18,391 - DEBUG - IP 10.2.34.1 queued for pinging
+2024-05-08 07:16:18,391 - DEBUG - Processing ping for IP: 10.2.34.1
+2024-05-08 07:16:18,391 - DEBUG - IP 2.2.2.2 queued for pinging
+2024-05-08 07:16:18,391 - DEBUG - Processing ping for IP: 2.2.2.2
+2024-05-08 07:16:18,391 - DEBUG - Starting ping for IP: 10.2.34.1
+2024-05-08 07:16:18,391 - INFO - Successfully refreshed all devices.
+2024-05-08 07:16:18,391 - DEBUG - Starting ping for IP: 2.2.2.2
+2024-05-08 07:16:22,500 - DEBUG - Ping completed for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=10ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 7ms, Maximum = 10ms, Average = 8ms
+ STDERR: 
+2024-05-08 07:16:22,507 - DEBUG - Ping command result for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=10ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 7ms, Maximum = 10ms, Average = 8ms
+ STDERR: 
+2024-05-08 07:16:22,510 - DEBUG - Updating status for IP 10.2.34.1 to Online, Avg ping: 8.00 ms
+2024-05-08 07:17:19,777 - DEBUG - IP 10.2.34.1 queued for pinging
+2024-05-08 07:17:19,777 - DEBUG - Processing ping for IP: 10.2.34.1
+2024-05-08 07:17:19,778 - DEBUG - IP 2.2.2.2 queued for pinging
+2024-05-08 07:17:19,778 - DEBUG - Processing ping for IP: 2.2.2.2
+2024-05-08 07:17:19,778 - DEBUG - Starting ping for IP: 10.2.34.1
+2024-05-08 07:17:19,779 - INFO - Successfully refreshed all devices.
+2024-05-08 07:17:19,779 - DEBUG - Starting ping for IP: 2.2.2.2
+2024-05-08 07:17:23,876 - DEBUG - Ping completed for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=10ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=6ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 6ms, Maximum = 10ms, Average = 8ms
+ STDERR: 
+2024-05-08 07:17:23,878 - DEBUG - Ping command result for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=10ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=6ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 6ms, Maximum = 10ms, Average = 8ms
+ STDERR: 
+2024-05-08 07:17:23,880 - DEBUG - Updating status for IP 10.2.34.1 to Online, Avg ping: 8.00 ms
+2024-05-08 07:21:31,498 - DEBUG - Config file loaded successfully.
+2024-05-08 07:21:31,514 - DEBUG - Refresh interval set to 60 seconds based on ping attempts.
+2024-05-08 07:22:31,875 - DEBUG - IP 10.2.34.1 queued for pinging
+2024-05-08 07:22:31,875 - DEBUG - Processing ping for IP: 10.2.34.1
+2024-05-08 07:22:31,875 - DEBUG - IP 2.2.2.2 queued for pinging
+2024-05-08 07:22:31,875 - DEBUG - Processing ping for IP: 2.2.2.2
+2024-05-08 07:22:31,875 - DEBUG - Starting ping for IP: 10.2.34.1
+2024-05-08 07:22:31,875 - INFO - Successfully refreshed all devices.
+2024-05-08 07:22:31,885 - DEBUG - Starting ping for IP: 2.2.2.2
+2024-05-08 07:22:35,979 - DEBUG - Ping completed for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=20ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 7ms, Maximum = 20ms, Average = 10ms
+ STDERR: 
+2024-05-08 07:22:35,985 - DEBUG - Updating status for IP 10.2.34.1 to Online, Avg ping: 10.20 ms
+2024-05-08 07:22:41,924 - ERROR - Ping request for IP 2.2.2.2 timed out
+2024-05-08 07:22:41,933 - DEBUG - Updating status for IP 2.2.2.2 to Offline, Ping Timeout
+2024-05-08 07:23:33,228 - DEBUG - IP 10.2.34.1 queued for pinging
+2024-05-08 07:23:33,228 - DEBUG - Processing ping for IP: 10.2.34.1
+2024-05-08 07:23:33,229 - DEBUG - IP 2.2.2.2 queued for pinging
+2024-05-08 07:23:33,230 - DEBUG - Processing ping for IP: 2.2.2.2
+2024-05-08 07:23:33,230 - DEBUG - Starting ping for IP: 10.2.34.1
+2024-05-08 07:23:33,230 - INFO - Successfully refreshed all devices.
+2024-05-08 07:23:33,231 - DEBUG - Starting ping for IP: 2.2.2.2
+2024-05-08 07:23:37,323 - DEBUG - Ping completed for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=37ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=23ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=12ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 8ms, Maximum = 37ms, Average = 17ms
+ STDERR: 
+2024-05-08 07:23:37,330 - DEBUG - Updating status for IP 10.2.34.1 to Online, Avg ping: 17.80 ms
+2024-05-08 07:23:43,253 - ERROR - Ping request for IP 2.2.2.2 timed out
+2024-05-08 07:23:43,258 - DEBUG - Updating status for IP 2.2.2.2 to Offline, Ping Timeout
+2024-05-08 07:24:34,531 - DEBUG - IP 10.2.34.1 queued for pinging
+2024-05-08 07:24:34,531 - DEBUG - Processing ping for IP: 10.2.34.1
+2024-05-08 07:24:34,531 - DEBUG - IP 2.2.2.2 queued for pinging
+2024-05-08 07:24:34,531 - DEBUG - Processing ping for IP: 2.2.2.2
+2024-05-08 07:24:34,531 - DEBUG - Starting ping for IP: 10.2.34.1
+2024-05-08 07:24:34,531 - INFO - Successfully refreshed all devices.
+2024-05-08 07:24:34,531 - DEBUG - Starting ping for IP: 2.2.2.2
+2024-05-08 07:24:38,641 - DEBUG - Ping completed for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=18ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=9ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 7ms, Maximum = 18ms, Average = 10ms
+ STDERR: 
+2024-05-08 07:24:38,644 - DEBUG - Updating status for IP 10.2.34.1 to Online, Avg ping: 10.00 ms
+2024-05-08 07:24:44,593 - ERROR - Ping request for IP 2.2.2.2 timed out
+2024-05-08 07:24:44,600 - DEBUG - Updating status for IP 2.2.2.2 to Offline, Ping Timeout
+2024-05-08 07:28:50,444 - DEBUG - Config file loaded successfully.
+2024-05-08 07:28:50,463 - DEBUG - Refresh interval set to 60 seconds based on ping attempts.
+2024-05-08 07:29:50,780 - DEBUG - IP 10.2.34.1 queued for pinging
+2024-05-08 07:29:50,780 - DEBUG - Processing ping for IP: 10.2.34.1
+2024-05-08 07:29:50,780 - DEBUG - IP 2.2.2.2 queued for pinging
+2024-05-08 07:29:50,780 - DEBUG - Processing ping for IP: 2.2.2.2
+2024-05-08 07:29:50,780 - DEBUG - Starting ping for IP: 10.2.34.1
+2024-05-08 07:29:50,780 - INFO - Successfully refreshed all devices.
+2024-05-08 07:29:50,780 - DEBUG - Starting ping for IP: 2.2.2.2
+2024-05-08 07:29:54,866 - DEBUG - Ping completed for IP 10.2.34.1: STDOUT: 
+Pinging 10.2.34.1 with 32 bytes of data:
+Reply from 10.2.34.1: bytes=32 time=7ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=8ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=14ms TTL=254
+Reply from 10.2.34.1: bytes=32 time=6ms TTL=254
+
+Ping statistics for 10.2.34.1:
+    Packets: Sent = 5, Received = 5, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 6ms, Maximum = 14ms, Average = 8ms
+ STDERR: 
+2024-05-08 07:29:54,880 - DEBUG - Updating status for IP 10.2.34.1 to Online, Avg ping: 8.60 ms
+2024-05-08 07:30:00,824 - ERROR - Ping request for IP 2.2.2.2 timed out
+2024-05-08 07:30:00,831 - DEBUG - Updating status for IP 2.2.2.2 to Offline, Ping Timeout
