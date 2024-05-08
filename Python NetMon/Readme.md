@@ -95,7 +95,7 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 
 ## Version History
 
-### v1.1.0.1 - Latest
+### v1.1.1 - Latest
 **Release Date:** May 8, 2024
 - Added keyboard shortcuts for improved navigation and usability.
 - Improved logging for network operations and error handling.
