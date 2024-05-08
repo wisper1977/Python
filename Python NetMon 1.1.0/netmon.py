@@ -1,4 +1,4 @@
-import configparser, csv, subprocess, platform, ipaddress, logging, threading, queue, re
+import configparser, csv, subprocess, platform, ipaddress, logging, threading, queue, re, webbrowser
 import tkinter as tk
 from queue import Queue, Empty
 from threading import Thread
@@ -6,7 +6,7 @@ from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
 from logging.handlers import RotatingFileHandler
 
-version = "1.1.1"
+version = "1.1.0"
 hyperlink = "https://tinyurl.com/PythonNetMon"
 
 # Set up logging directories
@@ -538,7 +538,12 @@ class Application(tk.Frame):
         edit_menu.add_command(label="Delete Device", command=self.delete_device)
 
         # Adding 'About' under 'Help'
+        help_menu.add_command(label="Online Help", command=self.open_online_help)
         help_menu.add_command(label="About", command=self.show_about)
+  
+    def open_online_help(self):
+        # This function uses the 'webbrowser' module to open the specified hyperlink
+        webbrowser.open_new_tab(hyperlink)
 
     def show_about(self):
         """
