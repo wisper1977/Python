@@ -6,6 +6,8 @@ from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
 from logging.handlers import RotatingFileHandler
 
+version = "1.1.1"
+
 # Set up logging directories
 log_directory = Path('log')
 log_directory.mkdir(exist_ok=True)  # Create the log directory if it does not exist
@@ -21,12 +23,41 @@ logging.basicConfig(
 )
 
 class ConfigManager:
+    """
+    Manages the application configuration, specifically settings related to network
+    pinging operations such as attempts and timeout settings.
+
+    Attributes:
+        config_path (Path): The file path to the configuration file.
+        config (ConfigParser): An instance of ConfigParser to manage reading and writing 
+                               to the configuration file.
+
+    Methods:
+        load_config: Loads the configuration from the file or creates a new configuration if none exists.
+        save_settings: Saves modified ping attempts and timeout settings to the configuration file.
+    """
     def __init__(self, config_path='config/config.ini'):
+        """
+        Initialize the configuration manager.
+
+        Args:
+            config_path (str): The filesystem path to the configuration file.
+
+        This method initializes the configuration manager with a path to the configuration
+        file and loads the configuration settings.
+        """
         self.config_path = Path(config_path)
         self.config = configparser.ConfigParser()
         self.load_config()
 
     def load_config(self):
+        """
+        Load configuration from the configuration file.
+
+        This method checks if the configuration file exists. If it does not, it creates
+        a new configuration file with default settings. If it exists, it loads the settings.
+        It logs the outcome of the operation.
+        """
         if not self.config_path.exists():
             self.config['PING'] = {'Attempts': '3', 'Timeout': '100'}
             with open(self.config_path, 'w') as configfile:
@@ -39,6 +70,20 @@ class ConfigManager:
         self.ping_timeout = self.config.getint('PING', 'Timeout')
 
     def save_settings(self, attempts, timeout):
+        """
+        Save the ping settings to the configuration file.
+
+        Args:
+            attempts (int): Number of ping attempts to be saved.
+            timeout (int): Timeout duration in milliseconds for each ping attempt.
+
+        This method updates the ping configuration settings with the provided number of attempts
+        and timeout duration. If the number of attempts exceeds the maximum limit of 10, it logs
+        an error and sets the attempts to 10 before saving. It then writes these settings to the
+        configuration file and reloads the configuration to ensure the application uses the updated
+        settings. This ensures that all parts of the application that depend on these settings are
+        in sync with the latest configurations.
+        """
         if attempts > 10:
             logging.error("Attempt to set ping attempts greater than 10. Limiting to 10.")
             attempts = 10
@@ -50,7 +95,31 @@ class ConfigManager:
         self.load_config()
 
 class DeviceManager:
+    """
+    Manages device information for network monitoring, including operations such as
+    loading, saving, deleting, and updating device details.
+
+    Attributes:
+        filepath (Path): Path to the CSV file where device data is stored.
+
+    Methods:
+        load_devices: Retrieves a list of all devices from the CSV file.
+        generate_new_key: Generates a unique key for a new device entry.
+        save_device: Adds a new device to the CSV file.
+        delete_device: Removes a device entry from the CSV file based on a provided key.
+        update_device: Updates details for a specific device entry in the CSV file.
+    """
     def __init__(self, filepath='config/equipment.csv'):
+        """
+        Initializes the DeviceManager with a specific file path for device data storage.
+
+        Args:
+            filepath (str, optional): Path to the CSV file used for storing device data.
+                                      Defaults to 'config/equipment.csv'.
+
+        The constructor checks if the CSV file exists at the specified path; if not, it creates
+        a new file with the necessary headers for storing device data.
+        """
         self.filepath = Path(filepath)
         if not self.filepath.exists():
             with open(self.filepath, mode='w', newline='') as file:
@@ -58,20 +127,46 @@ class DeviceManager:
                 writer.writeheader()
 
     def load_devices(self):
+        """
+        Loads and returns a list of all devices from the CSV file.
+
+        Returns:
+            List[Dict]: A list of dictionaries, each representing a device with details
+                        such as Key, Location, Name, IP, Type, and Status.
+        """
         with open(self.filepath, mode='r', newline='') as file:
             return list(csv.DictReader(file))
 
     def generate_new_key(self):
+        """
+        Generates a unique key for a new device by finding the maximum key value in the CSV
+        and adding one.
+
+        Returns:
+            int: A new unique key for a device.
+        """
         with open(self.filepath, mode='r', newline='') as file:
             max_key = max((int(row['Key']) for row in csv.DictReader(file)), default=0)
         return max_key + 1
 
     def save_device(self, device):
+        """
+        Appends a new device entry to the CSV file.
+
+        Args:
+            device (Dict): A dictionary containing the device details to be saved.
+        """
         with open(self.filepath, mode='a', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
             writer.writerow(device)
 
     def delete_device(self, device_key):
+        """
+        Deletes a device from the CSV file based on its key.
+
+        Args:
+            device_key (int): The key of the device to be deleted.
+        """
         devices = self.load_devices()
         devices = [device for device in devices if device['Key'] != device_key]
         with open(self.filepath, mode='w', newline='') as file:
@@ -80,6 +175,16 @@ class DeviceManager:
             writer.writerows(devices)
 
     def update_device(self, device_key, new_details):
+        """
+        Updates the details of an existing device in the CSV file.
+
+        Args:
+            device_key (int): The key of the device to be updated.
+            new_details (Dict): A dictionary containing the updated details for the device.
+
+        This method first loads all devices, modifies the details of the specified device, and
+        then writes all devices back to the CSV file to reflect the changes.
+        """
         devices = self.load_devices()
         updated = False
         for device in devices:
@@ -93,7 +198,32 @@ class DeviceManager:
                 writer.writerows(devices)
 
 class NetworkOperations:
+    """
+    Manages network operations, specifically handling the pinging process for monitoring network devices.
+
+    Attributes:
+        config (ConfigManager): Configuration manager with settings for ping attempts and timeout.
+        update_callback (function): Callback function to update the UI with the ping results.
+        task_queue (Queue): Thread-safe queue to manage ping tasks.
+        worker_count (int): Number of worker threads for handling ping tasks.
+        workers (list): List of worker threads.
+
+    Methods:
+        worker: A worker thread function to process pinging tasks.
+        ping_device: Enqueues an IP address for pinging.
+        _ping: Handles the actual pinging process and parses the output.
+        stop_workers: Stops all worker threads.
+    """
+
     def __init__(self, config, update_callback, max_queue_size=100):
+        """
+        Initializes the NetworkOperations class with configuration settings and a callback function.
+
+        Args:
+            config (ConfigManager): Configuration manager instance containing ping settings.
+            update_callback (function): Function to call with the results of a ping operation.
+            max_queue_size (int, optional): Maximum number of items the queue can hold. Defaults to 100.
+        """
         self.config = config
         self.update_callback = update_callback
         self.task_queue = Queue(maxsize=max_queue_size)  # Set maximum queue size
@@ -104,6 +234,13 @@ class NetworkOperations:
             worker.start()
 
     def worker(self):
+        """
+        Worker thread to process pinging tasks.
+
+        Continuously monitors the task queue for new IPs to ping, processes them, and
+        handles the task completion. If there are no tasks, it waits for a timeout and
+        checks again until a shutdown signal is received.
+        """
         while True:
             try:
                 ip = self.task_queue.get(timeout=3)  # Wait for a task or timeout
@@ -117,6 +254,19 @@ class NetworkOperations:
                 continue
 
     def ping_device(self, ip):
+        """
+        Queue an IP address for pinging.
+
+        Args:
+            ip (str): The IP address to be pinged.
+
+        This method attempts to add an IP address to the task queue for pinging. If the queue
+        is not full, the IP is added and a log message is generated to indicate successful queuing.
+        If the queue is full, a warning is logged stating that the IP could not be queued. If 
+        queuing fails due to the queue being full, an error is logged. This function ensures that
+        pinging operations do not block or delay due to queue limitations, implementing a 
+        non-blocking enqueue with a brief wait if necessary.
+        """
         try:
             if not self.task_queue.full():
                 self.task_queue.put(ip, timeout=1)  # Wait a bit before skipping
@@ -127,6 +277,16 @@ class NetworkOperations:
             logging.error("Failed to queue ping task for IP: {} due to full queue".format(ip))
 
     def _ping(self, ip):
+        """
+        Execute the ping command to a specified IP address and process the results.
+
+        Args:
+            ip (str): The IP address to ping.
+
+        This method constructs the appropriate ping command based on the operating system,
+        executes it, and parses the output to determine the ping result. It updates the
+        device status based on the ping response.
+        """
         logging.debug(f"Starting ping for IP: {ip}")
         attempts = self.config.ping_attempts
         timeout = self.config.ping_timeout
@@ -160,11 +320,30 @@ class NetworkOperations:
         self.update_callback(ip, status)
 
     def stop_workers(self):
+        """
+        Stops all worker threads by sending a None item into the task queue.
+        """
         for _ in range(len(self.workers)):
             self.task_queue.put(None)
 
 class DeviceDialog(simpledialog.Dialog):
+    """
+    A dialog for adding or editing device details in the network monitoring application.
+
+    Attributes:
+        master (tk.Widget): The parent widget.
+        existing_details (dict, optional): Existing details of the device if it's being edited.
+        action (callable, optional): A function to be called with the device details on dialog completion.
+    """
     def __init__(self, master, existing_details=None, action=None):
+        """
+        Initialize the dialog with default or existing details.
+
+        Args:
+            master (tk.Widget): The parent widget.
+            existing_details (dict, optional): Pre-filled device details if editing.
+            action (callable, optional): Function to execute on dialog submission.
+        """
         try:
             self.existing_details = existing_details or {'Key': '', 'Location': '', 'Name': '', 'IP': '', 'Type': '', 'Status': 'Unknown'}
             self.action = action
@@ -174,6 +353,15 @@ class DeviceDialog(simpledialog.Dialog):
             raise e
 
     def body(self, master):
+        """
+        Creates the layout of the dialog, including label and entry fields for device properties.
+
+        Args:
+            master (tk.Widget): The parent widget for the dialog elements.
+
+        Returns:
+            tk.Entry: The first entry widget in the dialog, which should receive initial focus.
+        """
         try:
             # Creating labels for each field
             Label(master, text="Key:").grid(row=0, column=0)
@@ -207,6 +395,9 @@ class DeviceDialog(simpledialog.Dialog):
             raise e
 
     def apply(self):
+        """
+        Handles the action when the user applies the dialog, processing the data entered.
+        """
         try:
             details = {
                 'Key': self.key_var.get(),
@@ -224,15 +415,40 @@ class DeviceDialog(simpledialog.Dialog):
             raise e
 
 class PingSettingsDialog(simpledialog.Dialog):
+    """
+    A dialog for adjusting the network ping settings in the application.
+
+    Attributes:
+        master (tk.Widget): The parent widget.
+        num_attempts (int): Number of ping attempts to be configured.
+        timeout_duration (int): Timeout duration for each ping attempt.
+        config_manager (ConfigManager): A reference to the configuration manager.
+    """
     def __init__(self, master, num_attempts, timeout_duration, config_manager):
-        # Initialize attributes before calling the parent constructor which eventually calls `body`.
+        """
+        Initializes the PingSettingsDialog with current settings.
+
+        Args:
+            master (tk.Widget): The parent widget.
+            num_attempts (int): Current number of ping attempts.
+            timeout_duration (int): Current timeout duration in seconds.
+            config_manager (ConfigManager): Configuration manager handling settings.
+        """
         self.num_attempts = num_attempts
         self.timeout_duration = timeout_duration
         self.config_manager = config_manager
         super().__init__(master, title="Ping Settings")
 
     def body(self, master):
-        # Create and place widgets in the dialog; `self.num_attempts` and `self.timeout_duration` are already set.
+        """
+        Constructs the body of the dialog, consisting of input fields for ping attempts and timeout settings.
+
+        Args:
+            master (tk.Widget): The parent widget for the dialog elements.
+
+        Returns:
+            tk.Entry: The entry widget for the number of attempts, which should receive the initial focus.
+        """
         Label(master, text="Number of Attempts:").grid(row=0, column=0)
         self.num_attempts_var = tk.StringVar(value=str(self.num_attempts))
         self.num_attempts_entry = Entry(master, textvariable=self.num_attempts_var)
@@ -246,6 +462,12 @@ class PingSettingsDialog(simpledialog.Dialog):
         return self.num_attempts_entry  # Setting initial focus to the num_attempts_entry widget
 
     def apply(self):
+        """
+        Processes and saves the updated settings when the user applies the dialog.
+
+        Validates the input to ensure that the number of ping attempts does not exceed a preset maximum.
+        Updates the settings in the configuration manager and the application's refresh interval.
+        """
         num_attempts = int(self.num_attempts_var.get())
         timeout_duration = int(self.timeout_duration_var.get())
         if num_attempts > 10:
@@ -256,7 +478,23 @@ class PingSettingsDialog(simpledialog.Dialog):
         logging.debug("Ping settings updated from settings dialog.")
 
 class Application(tk.Frame):
+    """
+    Main application frame for the network monitoring tool.
+
+    This class initializes the user interface components, configures the network operations,
+    and manages device data and settings.
+
+    Attributes:
+        master (tk.Tk): The main window for the application.
+    """
     def __init__(self, master=None):
+        """
+        Initialize the application with the main window and load configurations, device data,
+        and start the network operations.
+
+        Args:
+            master (tk.Tk): The root window for the application.
+        """
         super().__init__(master)
         self.master = master
         self.master.title("Python NetMon")  # Set the title of the main window
@@ -273,14 +511,20 @@ class Application(tk.Frame):
         self.update_status()
 
     def create_menu(self):
+        """
+        Creates the menu bar for the application window with options for file handling
+        and editing device details.
+        """
         menubar = tk.Menu(self.master)
         self.master.config(menu=menubar)
         
         file_menu = tk.Menu(menubar, tearoff=0)
         edit_menu = tk.Menu(menubar, tearoff=0)
+        help_menu = tk.Menu(menubar, tearoff=0)
         
         menubar.add_cascade(label="File", menu=file_menu)
         menubar.add_cascade(label="Edit", menu=edit_menu)
+        menubar.add_cascade(label="Help", menu=help_menu)
         
         # Adding 'Settings' under 'File'
         file_menu.add_command(label="Settings", command=self.open_settings)
@@ -292,7 +536,31 @@ class Application(tk.Frame):
         edit_menu.add_command(label="Edit Device", command=self.edit_device)
         edit_menu.add_command(label="Delete Device", command=self.delete_device)
 
+        # Adding 'About' under 'Help'
+        help_menu.add_command(label="About", command=self.show_about)
+
+    def show_about(self):
+        """
+        Display an 'About' dialog box.
+
+        This method uses the `messagebox.showinfo` function from tkinter to display a modal information dialog box.
+        This dialog provides users with basic information about the application, including its name, version,
+        developer, and a link or reference for further information.
+
+        The parameters passed to `showinfo` include the title of the window and a string containing the detailed
+        message to be displayed.
+        """
+        messagebox.showinfo("About Python NetMon",
+                            f"Python NetMon {version}\n"
+                            "Developed by: Chris Collins\n"
+                            "A simple network monitoring tool built with Python and Tkinter.\n"
+                            "For more information, visit: https://github.com/wisper1977/Python/tree/main/Python%20NetMon%201.1.0")
+
     def create_widgets(self):
+        """
+        Configures and places the main widgets in the application including the treeview
+        for displaying devices and their status.
+        """
         # Configure the layout
         self.pack(fill='both', expand=True)
         self.grid_columnconfigure(0, weight=1)
@@ -340,6 +608,9 @@ class Application(tk.Frame):
         button_frame.grid(row=1, column=1, pady=10)  # Button frame below the status label
 
     def load_devices(self):
+        """
+        Loads devices from the device manager and populates the treeview.
+        """
         try:
             self.tree.delete(*self.tree.get_children())
             devices = self.device_manager.load_devices()
@@ -351,6 +622,9 @@ class Application(tk.Frame):
             logging.error("Failed to load devices", exc_info=True)
 
     def update_refresh_interval(self):
+        """
+        Updates the refresh interval based on the number of ping attempts configured.
+        """
         if self.config_manager.ping_attempts <= 5:
             self.refresh_interval = 60
         elif 5 < self.config_manager.ping_attempts <= 10:
@@ -359,6 +633,9 @@ class Application(tk.Frame):
         logging.debug(f"Refresh interval set to {self.refresh_interval} seconds based on ping attempts.")
 
     def refresh(self):
+        """
+        Refreshes the status of all devices by re-pinging them and updating the treeview.
+        """
         self.tree.delete(*self.tree.get_children())
         devices = self.device_manager.load_devices()
         for device in devices:
@@ -367,7 +644,9 @@ class Application(tk.Frame):
         logging.info("Successfully refreshed all devices.")
 
     def sort_devices(self):
-        """ Sort devices in the treeview based on status priority: Offline, Pending, Online. """
+        """
+        Sorts the devices displayed in the treeview based on their status to prioritize visibility.
+        """
         l = [(self.tree.set(k, "Status"), k) for k in self.tree.get_children('')]
         l.sort(key=lambda t: (t[0] != "Offline", t[0] == "Online"))
         # rearrange items in sorted positions
@@ -375,7 +654,9 @@ class Application(tk.Frame):
             self.tree.move(k, '', index)
 
     def update_status(self):
-        """Update the status label and refresh the device statuses periodically."""
+        """
+        Periodically updates the status label and refreshes device statuses based on the set interval.
+        """
         if self.countdown > 0:
             self.status_label.config(text=f"Next update in {self.countdown} seconds")
             self.countdown -= 1
@@ -386,10 +667,15 @@ class Application(tk.Frame):
             self.master.after(1000, self.update_status)
 
     def update_device_status(self, ip, status):
-        """ Update the device status in the Treeview. """
+        """
+        Callback function to update the status of a specific device in the treeview.
+        """
         self.master.after(0, lambda: self._update_device_status(ip, status))
 
     def _update_device_status(self, ip, status):
+        """
+        Updates the status of a device in the treeview based on the results of a ping operation.
+        """
         logging.debug(f"Updating status for IP {ip} to {status}")
         for child in self.tree.get_children():
             values = self.tree.item(child, 'values')
@@ -408,6 +694,9 @@ class Application(tk.Frame):
         self.sort_devices()
 
     def open_settings(self):
+        """
+        Opens the settings dialog for adjusting ping parameters.
+        """
         try:
             dialog = PingSettingsDialog(self, self.config_manager.ping_attempts, self.config_manager.ping_timeout, self.config_manager)
             if dialog.result:  # You might need to adjust this depending on the dialog result handling
@@ -416,6 +705,10 @@ class Application(tk.Frame):
             logging.error("Failed to open settings dialog", exc_info=True)
 
     def add_device(self):
+        """
+        Opens a dialog to add a new device. Validates the device details and updates
+        the device list and display if the addition is successful.
+        """
         dialog = DeviceDialog(self.master)
         if dialog.result:
             new_device = dialog.result
@@ -430,6 +723,15 @@ class Application(tk.Frame):
                 messagebox.showerror("Add Device", "Failed to add device. Invalid input details.")
 
     def validate_device(self, device):
+        """
+        Validates the IP address of a device to ensure it is correctly formatted.
+
+        Args:
+            device (dict): The device data containing an IP address to validate.
+
+        Returns:
+            bool: True if the IP address is valid, False otherwise.
+        """
         try:
             ipaddress.ip_address(device['IP'])
             return True
@@ -437,6 +739,10 @@ class Application(tk.Frame):
             return False
 
     def edit_device(self):
+        """
+        Opens a dialog to edit the details of a selected device from the treeview.
+        Updates the device list and display if the editing is successful.
+        """
         selected_items = self.tree.selection()
         if selected_items:
             item = self.tree.item(selected_items[0], "values")
@@ -453,11 +759,22 @@ class Application(tk.Frame):
                 self.refresh()
 
     def update_device(self, new_details):
+        """
+        Updates the details of an existing device in the device manager and refreshes
+        the device display in the treeview.
+
+        Args:
+            new_details (dict): The updated device details.
+        """
         device_key = new_details['Key']
         self.device_manager.update_device(device_key, new_details)
         self.refresh()
 
     def delete_device(self):
+        """
+        Deletes a selected device from the treeview and the device list after
+        confirmation from the user.
+        """
         selected_items = self.tree.selection()
         if selected_items:
             item = this.tree.item(selected_items[0], "values")
