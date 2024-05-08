@@ -6,7 +6,8 @@ from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
 from logging.handlers import RotatingFileHandler
 
-version = "1.1.0"
+version = "1.1.1"
+hyperlink = "https://tinyurl.com/PythonNetMon"
 
 # Set up logging directories
 log_directory = Path('log')
@@ -554,7 +555,7 @@ class Application(tk.Frame):
                             f"Python NetMon {version}\n"
                             "Developed by: Chris Collins\n"
                             "A simple network monitoring tool built with Python and Tkinter.\n"
-                            "For more information, visit: https://github.com/wisper1977/Python/tree/main/Python%20NetMon%201.1.0")
+                            f"For more information, visit: {hyperlink}")
 
     def create_widgets(self):
         """
