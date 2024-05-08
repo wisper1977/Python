@@ -267,9 +267,30 @@ class Application(tk.Frame):
         self.network_ops = NetworkOperations(self.config_manager, self.update_device_status)
         self.update_refresh_interval()
         
+        self.create_menu()
         self.create_widgets()
         self.load_devices()  # Load devices immediately but delay the ping
         self.update_status()
+
+    def create_menu(self):
+        menubar = tk.Menu(self.master)
+        self.master.config(menu=menubar)
+        
+        file_menu = tk.Menu(menubar, tearoff=0)
+        edit_menu = tk.Menu(menubar, tearoff=0)
+        
+        menubar.add_cascade(label="File", menu=file_menu)
+        menubar.add_cascade(label="Edit", menu=edit_menu)
+        
+        # Adding 'Settings' under 'File'
+        file_menu.add_command(label="Settings", command=self.open_settings)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.master.quit)
+        
+        # Adding Device management options under 'Edit'
+        edit_menu.add_command(label="Add Device", command=self.add_device)
+        edit_menu.add_command(label="Edit Device", command=self.edit_device)
+        edit_menu.add_command(label="Delete Device", command=self.delete_device)
 
     def create_widgets(self):
         # Configure the layout
@@ -284,15 +305,16 @@ class Application(tk.Frame):
             self.tree.column(col, anchor='center')
             
         # Configuring the column widths can be optional, add if needed:
-        # Hide the 'Key' column while still using it in the background
-        self.tree.heading("Key", text="Key")
-        self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)  # Set width and stretch to minimize and hide the column
         # self.tree.column("Location", width=100)
         # self.tree.column("Name", width=120)
         # self.tree.column("IP", width=100)
         # self.tree.column("Type", width=100)
         # self.tree.column("Status", width=150)
         # self.tree.column("Avg Ping", width=120)
+        
+        # Hide the 'Key' column while still using it in the background
+        self.tree.heading("Key", text="Key")
+        self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)  # Set width and stretch to minimize and hide the column
 
         self.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
 
@@ -316,16 +338,6 @@ class Application(tk.Frame):
 
         button_frame = tk.Frame(bottom_frame)
         button_frame.grid(row=1, column=1, pady=10)  # Button frame below the status label
-
-        self.settings_button = tk.Button(button_frame, text="Settings", command=self.open_settings)
-        self.add_button = tk.Button(button_frame, text="Add Device", command=self.add_device)
-        self.edit_button = tk.Button(button_frame, text="Edit Device", command=self.edit_device)
-        self.delete_button = tk.Button(button_frame, text="Delete Device", command=self.delete_device)
-
-        self.settings_button.pack(side="left", padx=5)
-        self.add_button.pack(side="left", padx=5)
-        self.edit_button.pack(side="left", padx=5)
-        self.delete_button.pack(side="left", padx=5)
 
     def load_devices(self):
         try:
