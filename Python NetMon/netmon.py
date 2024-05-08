@@ -5,7 +5,7 @@ from threading import Thread
 from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
 
-version = "1.1.0.1"
+version = "1.1.1"
 hyperlink = "https://tinyurl.com/PyNetMon"
 
 # Set up logging directories
