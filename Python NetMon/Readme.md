@@ -9,8 +9,8 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
 - [Installation](#installation)
 - [Usage](#usage)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Version History](#version-history)
 - [Contributing](#contributing)
-- [Support](#support)
 - [License](#license)
 
 ## Features
@@ -93,6 +93,35 @@ The application supports several keyboard shortcuts to make navigation and opera
 
 Make sure a device is selected in the main window for edit or delete shortcuts to work.
 
+## Version History
+
+### v1.1.0.1 - Latest
+**Release Date:** May 8, 2024
+- Added keyboard shortcuts for improved navigation and usability.
+- Improved logging for network operations and error handling.
+- Fixed UI bugs related to device management dialogs.
+
+### v1.1.0
+**Release Date:** April 20, 2024
+- Introduced the device editing and deleting functionality.
+- Added validation for IP addresses when adding or editing devices.
+- Enhanced performance for device status updates.
+
+### v1.0.2
+**Release Date:** March 15, 2024
+- Fixed a bug in the network pinging process where timeouts were not handled correctly.
+- Updated UI responsiveness during network scans.
+
+### v1.0.1
+**Release Date:** February 25, 2024
+- Minor bug fixes in the configuration management.
+- Improved error messages for easier troubleshooting.
+
+### v1.0.0 - Initial Release
+**Release Date:** February 10, 2024
+- Basic functionality for adding devices and monitoring their status via ping.
+- Simple UI for managing and viewing network devices.
+- Configurable settings for ping attempts and timeout intervals.
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
