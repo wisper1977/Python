@@ -527,19 +527,31 @@ class Application(tk.Frame):
         menubar.add_cascade(label="Help", menu=help_menu)
         
         # Adding 'Settings' under 'File'
-        file_menu.add_command(label="Settings", command=self.open_settings)
+        file_menu.add_command(label="Settings", accelerator="Ctrl+S", command=self.open_settings)
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.master.quit)
-        
-        # Adding Device management options under 'Edit'
-        edit_menu.add_command(label="Add Device", command=self.add_device)
-        edit_menu.add_command(label="Edit Device", command=self.edit_device)
-        edit_menu.add_command(label="Delete Device", command=self.delete_device)
+        file_menu.add_command(label="Exit", accelerator="Ctrl+Q", command=self.quit_app)
 
-        # Adding 'About' under 'Help'
-        help_menu.add_command(label="Online Help", command=self.open_online_help)
-        help_menu.add_command(label="About", command=self.show_about)
-  
+        # Adding Device management options under 'Edit'
+        edit_menu.add_command(label="Add Device", accelerator="Ctrl+A", command=self.add_device)
+        edit_menu.add_command(label="Edit Device", accelerator="Ctrl+E", command=self.edit_device)
+        edit_menu.add_command(label="Delete Device", accelerator="Ctrl+D", command=self.delete_device)
+
+        # Adding 'Online Help' and 'About' under 'Help'
+        help_menu.add_command(label="Online Help", accelerator="Ctrl+H", command=self.open_online_help)
+        help_menu.add_command(label="About", accelerator="Ctrl+I", command=self.show_about)
+
+        # Bind keyboard shortcuts
+        self.master.bind("<Control-s>", lambda event: self.open_settings())
+        self.master.bind("<Control-q>", lambda event: self.quit_app())
+        self.master.bind("<Control-a>", lambda event: self.add_device())
+        self.master.bind("<Control-e>", lambda event: self.edit_device())
+        self.master.bind("<Control-d>", lambda event: self.delete_device())
+        self.master.bind("<Control-h>", lambda event: self.open_online_help())
+        self.master.bind("<Control-i>", lambda event: self.show_about())
+
+    def quit_app(self):
+        self.master.quit()
+
     def open_online_help(self):
         # This function uses the 'webbrowser' module to open the specified hyperlink
         webbrowser.open_new_tab(hyperlink)
