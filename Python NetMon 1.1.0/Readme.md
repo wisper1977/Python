@@ -42,7 +42,7 @@ No additional installation required if you have Python installed.
 ## Usage
 To run the application, navigate to the directory containing the script and run:
 
-   python netmon1.1.1.py
+   python netmon.py
 
 ## Adding a New Device
 
