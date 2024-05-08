@@ -6,7 +6,7 @@ from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
 from logging.handlers import RotatingFileHandler
 
-version = "1.1.1"
+version = "1.1.0"
 
 # Set up logging directories
 log_directory = Path('log')
