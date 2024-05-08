@@ -6,7 +6,7 @@ from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
 
 version = "1.1.0"
-hyperlink = "https://tinyurl.com/PythonNetMon"
+hyperlink = "https://tinyurl.com/PyNetMon"
 
 # Set up logging directories
 log_directory = Path('log')
