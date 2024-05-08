@@ -95,33 +95,65 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 
 ## Version History
 
-### v1.1.1 - Latest
+### v1.1.2 - Beta
+**Release Date:** TBD
+Current Updates:
+- Added log viewer with options to refresh and clear logs, including confirmation dialog.
+- Centered control buttons in the log viewer for better user interaction.
+- Enhanced logging details for better traceability and diagnostics.
+
+### v1.1.1 - Current Version
 **Release Date:** May 8, 2024
+Security Enhancements:
+- Added input validation to prevent common security vulnerabilities.
+- Implemented more robust error handling throughout the network operations.
 - Added keyboard shortcuts for improved navigation and usability.
 - Improved logging for network operations and error handling.
 - Fixed UI bugs related to device management dialogs.
 
-### v1.1.0
+### v1.1.0 - Major Update
 **Release Date:** April 20, 2024
+Major Improvements:
 - Introduced the device editing and deleting functionality.
 - Added validation for IP addresses when adding or editing devices.
 - Enhanced performance for device status updates.
+- Redesigned the entire user interface for a more modern look.
+- Introduced a multi-threaded approach for handling network operations.
+- Added a logging system with file output for troubleshooting.
 
-### v1.0.2
+### v1.0.4 - Additional Features
+**Release Date:** April 5, 2024
+New Features:
+- Implemented device editing and deletion capabilities.
+- Added support for saving device configurations.
+
+### v1.0.3 - User Interface Improvements
+**Release Date:** March 20, 2024
+UI Updates:
+- Enhanced user interface with better layout and navigation.
+- Added color coding to status indicators for devices.
+
+### v1.0.2 - Performance Enhancements
 **Release Date:** March 15, 2024
 - Fixed a bug in the network pinging process where timeouts were not handled correctly.
 - Updated UI responsiveness during network scans.
+- Optimized the network ping process for faster response times.
+- Reduced CPU usage during idle periods.
 
-### v1.0.1
+### v1.0.1 - Bug Fixes
 **Release Date:** February 25, 2024
 - Minor bug fixes in the configuration management.
 - Improved error messages for easier troubleshooting.
+- Fixed an issue where ping results were not updating correctly.
+- Minor UI adjustments for better readability.
 
 ### v1.0.0 - Initial Release
 **Release Date:** February 10, 2024
-- Basic functionality for adding devices and monitoring their status via ping.
-- Simple UI for managing and viewing network devices.
-- Configurable settings for ping attempts and timeout intervals.
+- Features Introduced:
+- Basic network monitoring capabilities.
+- Ping devices manually to check connectivity.
+- Display results in a simple user interface.
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
