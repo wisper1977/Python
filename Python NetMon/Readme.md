@@ -95,7 +95,13 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 
 ## Version History
 
-### v1.1.1 - Current Version
+### v1.1.1.1 - Current Version
+**Release Date:** TBD
+Security Enhancements:
+- Minor Bug Fixes
+- Enhanced logging
+
+### v1.1.1 - GUI Update
 **Release Date:** May 8, 2024
 Security Enhancements:
 - Added input validation to prevent common security vulnerabilities.
