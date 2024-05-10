@@ -109,12 +109,17 @@ Security Enhancements:
 
 ### v1.1.1 - GUI Update
 **Release Date:** May 8, 2024
-Security Enhancements:
-- Added input validation to prevent common security vulnerabilities.
-- Implemented more robust error handling throughout the network operations.
-- Added keyboard shortcuts for improved navigation and usability.
-- Improved logging for network operations and error handling.
-- Fixed UI bugs related to device management dialogs.
+Major Improvements:
+- Logging Enhancements: Introduced granular logging setup with a dedicated LogManager class to manage application-wide logging. Configured file and console handlers to capture logs, easing debugging and monitoring operations.
+- Error Handling Improvements: Expanded error handling in networking and configuration tasks to catch and log specific exceptions. This improves diagnostics and helps in maintaining system stability and debugging issues related to network timeouts and configuration errors.
+- User Interface Adjustments: Enhanced the treeview display to include an additional column for "Average Ping", providing more detailed feedback on network status directly in the main application window. Improved UI responsiveness by handling UI updates through asynchronous callbacks, ensuring the application remains responsive during network operations.
+- Performance Optimization: Implemented more efficient network operation handling with a thread-safe queue, allowing more reliable and controlled execution of network ping tasks. Optimized the device loading and sorting mechanism, reducing the computational overhead when refreshing device statuses.
+- Feature Extensions: Added capabilities for modifying network ping settings through a dedicated settings dialog, giving users the flexibility to adjust the number of attempts and timeout settings dynamically. Introduced functionality to edit and delete device configurations directly from the UI, enhancing user interaction and ease of management.
+- Code Refactoring: Refactored major parts of the codebase for better readability and maintainability. Segregated functionalities into clearer, purpose-driven modules and classes. Enhanced comments and documentation within the code to align with Python best practices, aiding future contributors and maintainers of the project.
+- Security and Validation: Implemented rigorous validation for device IP addresses upon entry to prevent errors related to malformed inputs. Enhanced error handling mechanisms to prevent application crashes and ensure user operations are handled gracefully.
+Bug Fixes:
+- Addressed issues where the application could become unresponsive during prolonged network activities.
+- Fixed bugs related to device configuration saving and loading that could cause incorrect data handling.
 
 ### v1.1.0 - Major Update
 **Release Date:** April 20, 2024
