@@ -81,16 +81,28 @@ class ConfigManager:
         self.ping_timeout = self.config.getint('PING', 'Timeout')
 
     def save_settings(self, attempts, timeout):
+        # Validate the number of attempts before attempting to save
+        if attempts > 10:
+            self.logger.log_error("Attempt to set ping attempts greater than 10. Limiting to 10.")
+            attempts = 10
+
+        # Prepare settings to be saved
         try:
             self.config.set('PING', 'Attempts', str(attempts))
             self.config.set('PING', 'Timeout', str(timeout))
+
+            # Write configuration to file safely
             with open(self.config_path, 'w') as configfile:
                 self.config.write(configfile)
             self.logger.log_debug(f"Settings saved: Attempts={attempts}, Timeout={timeout}")
+
+            # Reload the configuration to reflect changes
+            self.load_config()
+
         except IOError as e:
-            self.logger.log_error(f"Failed to save settings: {e}")
+            self.logger.log_error(f"Failed to save settings to file: {e}")
         except configparser.Error as e:
-            self.logger.log_error(f"Configuration error while saving settings: {e}")
+            self.logger.log_error(f"Configuration parsing error while saving settings: {e}")
         except Exception as e:
             self.logger.log_critical(f"Unexpected error while saving settings: {e}")
 
@@ -102,14 +114,28 @@ class DeviceManager:
     def __init__(self, filepath='config/equipment.csv'):
         self.logger = LogManager.get_instance()
         self.filepath = Path(filepath)
+        if not self.filepath.exists():
+            self.initialize_device_file()
+
+    def initialize_device_file(self):
         try:
+            # Ensure the directory exists, create if not
+            self.filepath.parent.mkdir(parents=True, exist_ok=True)
+
+            # Check if the file exists, create and initialize if not
             if not self.filepath.exists():
                 with open(self.filepath, mode='w', newline='') as file:
                     writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
                     writer.writeheader()
-            self.logger.log_debug("DeviceManager initialized successfully")
+                self.logger.log_info("Device file created with header.")
+            else:
+                self.logger.log_debug("Device file already exists.")
+
+            self.logger.log_debug("DeviceManager initialized successfully.")
+
         except IOError as e:
-            self.logger.log_error(f"Failed to create device file: {e}")
+            self.logger.log_error(f"Failed to create or access device file: {e}")
+
         except Exception as e:
             self.logger.log_critical(f"Unexpected error during device manager initialization: {e}")
 
@@ -120,12 +146,23 @@ class DeviceManager:
         except IOError as e:
             self.logger.log_error(f"Failed to read device file: {e}")
             return []
+        
+    def generate_new_key(self):
+        try:
+            with open(self.filepath, mode='r', newline='') as file:
+                devices = csv.DictReader(file)
+                max_key = max((int(row['Key']) for row in devices), default=0)
+                return max_key + 1
+        except IOError as e:
+            self.logger.log_error(f"Failed to read device file for generating new key: {e}")
+            return 1  # Return a default key if file reading fails
 
     def save_device(self, device):
         try:
             with open(self.filepath, mode='a', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
                 writer.writerow(device)
+            self.logger.log_debug(f"Device saved successfully: {device}")
         except IOError as e:
             self.logger.log_error(f"Failed to save device: {e}")
 
