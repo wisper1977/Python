@@ -108,7 +108,9 @@ Security Enhancements:
 - Code Refinements: Adjusted existing code for better clarity and efficiency, focusing on robust handling of potential runtime exceptions and ensuring the stability of the application.
 
 ### v1.1.1 - GUI Update
+
 **Release Date:** May 8, 2024
+
 Major Improvements:
 - Logging Enhancements: Introduced granular logging setup with a dedicated LogManager class to manage application-wide logging. Configured file and console handlers to capture logs, easing debugging and monitoring operations.
 - Error Handling Improvements: Expanded error handling in networking and configuration tasks to catch and log specific exceptions. This improves diagnostics and helps in maintaining system stability and debugging issues related to network timeouts and configuration errors.
