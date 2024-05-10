@@ -1,6 +1,6 @@
-import configparser, csv, subprocess, platform, ipaddress, logging, threading, queue, re, webbrowser, time
+import configparser, csv, subprocess, platform, ipaddress, logging, queue, re, webbrowser
 import tkinter as tk
-from queue import Queue, Empty
+from queue import Queue
 from threading import Thread
 from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
@@ -54,82 +54,80 @@ class LogManager:
         logging.critical(message)
 
 class ConfigManager:
-
     def __init__(self, config_path='config/config.ini'):
         self.logger = LogManager.get_instance()
-        self.logger.log_debug("Initializing ConfigManager")
         self.config_path = Path(config_path)
         self.config = configparser.ConfigParser()
-        self.load_config()
-        self.logger.log_info("ConfigManager initialized successfully")
+        try:
+            self.load_config()
+        except configparser.Error as e:
+            self.logger.log_error(f"Configuration parsing error: {e}")
+        except FileNotFoundError:
+            self.logger.log_error("Configuration file not found, using default settings.")
+            self.use_default_config()
+        except Exception as e:
+            self.logger.log_critical(f"Unexpected error during configuration initialization: {e}")
 
     def load_config(self):
-        try:
-            if not self.config_path.exists():
-                self.config['PING'] = {'Attempts': '3', 'Timeout': '100'}
-                with open(self.config_path, 'w') as configfile:
-                    self.config.write(configfile)
-                self.logger.log_debug("No config file found. Created a new one with default settings.")
-            else:
-                self.config.read(self.config_path)
-                self.logger.log_debug("Config file loaded successfully.")
-            self.ping_attempts = self.config.getint('PING', 'Attempts')
-            self.ping_timeout = self.config.getint('PING', 'Timeout')
-        except Exception as e:
-            self.logger.log_error(f"Failed to load or create configuration: {e}")
+        if not self.config_path.exists():
+            self.config['PING'] = {'Attempts': '3', 'Timeout': '100'}
+            with open(self.config_path, 'w') as configfile:
+                self.config.write(configfile)
+            self.logger.log_debug("No config file found. Created a new one with default settings.")
+        else:
+            self.config.read(self.config_path)
+            self.logger.log_debug("Config file loaded successfully.")
+        self.ping_attempts = self.config.getint('PING', 'Attempts')
+        self.ping_timeout = self.config.getint('PING', 'Timeout')
 
     def save_settings(self, attempts, timeout):
         try:
-            self.logger.log_info(f"Updating settings: Attempts={attempts}, Timeout={timeout}")
-            if attempts > 10:
-                self.logger.log_warning("Attempt to set ping attempts greater than 10. Limiting to 10.")
-                attempts = 10
             self.config.set('PING', 'Attempts', str(attempts))
             self.config.set('PING', 'Timeout', str(timeout))
             with open(self.config_path, 'w') as configfile:
                 self.config.write(configfile)
             self.logger.log_debug(f"Settings saved: Attempts={attempts}, Timeout={timeout}")
-            self.load_config()
+        except IOError as e:
+            self.logger.log_error(f"Failed to save settings: {e}")
+        except configparser.Error as e:
+            self.logger.log_error(f"Configuration error while saving settings: {e}")
         except Exception as e:
-            self.logger.log_error(f"Error saving settings: {e}")
+            self.logger.log_critical(f"Unexpected error while saving settings: {e}")
+
+    def use_default_config(self):
+        self.config['PING'] = {'Attempts': '3', 'Timeout': '100'}
+        self.save_settings(3, 100)  # Save default settings
 
 class DeviceManager:
-
     def __init__(self, filepath='config/equipment.csv'):
         self.logger = LogManager.get_instance()
-        self.logger.log_debug("Initializing DeviceManager")
         self.filepath = Path(filepath)
-        if not self.filepath.exists():
-            with open(self.filepath, mode='w', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
-                writer.writeheader()
-        self.logger.log_info("DeviceManager initialized successfully")
+        try:
+            if not self.filepath.exists():
+                with open(self.filepath, mode='w', newline='') as file:
+                    writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
+                    writer.writeheader()
+            self.logger.log_debug("DeviceManager initialized successfully")
+        except IOError as e:
+            self.logger.log_error(f"Failed to create device file: {e}")
+        except Exception as e:
+            self.logger.log_critical(f"Unexpected error during device manager initialization: {e}")
 
     def load_devices(self):
         try:
             with open(self.filepath, mode='r', newline='') as file:
-                devices = list(csv.DictReader(file))
-                self.logger.log_debug(f"Loaded {len(devices)} devices")
-                return devices
-        except Exception as e:
-            self.logger.log_error(f"Failed to load devices: {e}")
-
-    def generate_new_key(self):
-        try:
-            with open(self.filepath, mode='r', newline='') as file:
-                max_key = max((int(row['Key']) for row in csv.DictReader(file)), default=0)
-            return max_key + 1
-        except Exception as e:
-            self.logger.log_error(f"Failed to generate new key: {e}")
+                return list(csv.DictReader(file))
+        except IOError as e:
+            self.logger.log_error(f"Failed to read device file: {e}")
+            return []
 
     def save_device(self, device):
         try:
             with open(self.filepath, mode='a', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
                 writer.writerow(device)
-                self.logger.log_info(f"Saved device: {device['IP']}")
-        except Exception as e:
-            self.logger.log_error(f"Failed to save device {device['IP']}: {e}")
+        except IOError as e:
+            self.logger.log_error(f"Failed to save device: {e}")
 
     def delete_device(self, device_key):
         try:
@@ -139,9 +137,8 @@ class DeviceManager:
                 writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
                 writer.writeheader()
                 writer.writerows(devices)
-            self.logger.log_info(f"Deleted device with Key: {device_key}")
-        except Exception as e:
-            self.logger.log_error(f"Failed to delete device with Key {device_key}: {e}")
+        except IOError as e:
+            self.logger.log_error(f"Failed to delete device: {e}")
 
     def update_device(self, device_key, new_details):
         try:
@@ -156,49 +153,44 @@ class DeviceManager:
                     writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
                     writer.writeheader()
                     writer.writerows(devices)
-                self.logger.log_info(f"Updated device with Key: {device_key}")
-        except Exception as e:
-            self.logger.log_error(f"Failed to update device with Key {device_key}: {e}")
+        except IOError as e:
+            self.logger.log_error(f"Failed to update device: {e}")
 
 class NetworkOperations:
-
     def __init__(self, config, update_callback, max_queue_size=100):
         self.logger = LogManager.get_instance()
         self.logger.log_debug("Initializing NetworkOperations")
         self.config = config
         self.update_callback = update_callback
-        self.task_queue = Queue(maxsize=max_queue_size)
-        self.worker_count = 10
+        self.task_queue = Queue(maxsize=max_queue_size)  # Set maximum queue size
+        self.worker_count = 10  # Increase number of workers if needed
         self.workers = [Thread(target=self.worker) for _ in range(self.worker_count)]
         for worker in self.workers:
             worker.daemon = True
             worker.start()
-        self.logger.log_info("NetworkOperations initialized successfully")
+        self.logger.log_debug("NetworkOperations initialized successfully")
 
     def worker(self):
         while True:
             try:
-                ip = self.task_queue.get(timeout=3)
-                if ip is None:
+                ip = self.task_queue.get(timeout=3)  # Wait for a task or timeout
+                if ip is None:  # Check if the worker should shut down
                     self.task_queue.task_done()
                     break
                 self.logger.log_info(f"Processing ping for IP: {ip}")
-                start_time = time.time()
                 self._ping(ip)
-                elapsed_time = time.time() - start_time
-                self.logger.log_debug(f"Ping operation for {ip} completed in {elapsed_time:.2f} seconds")
                 self.task_queue.task_done()
             except queue.Empty:
-                self.logger.log_warning("Worker queue is empty")
+                self.logger.log_error("Worker queue is empty")
+                continue
 
     def ping_device(self, ip):
         try:
-            self.logger.log_debug("Attempting to queue ping for IP: " + ip)
             if not self.task_queue.full():
-                self.task_queue.put(ip, timeout=1)
-                self.logger.log_info(f"IP {ip} queued for pinging")
+                self.task_queue.put(ip, timeout=1)  # Wait a bit before skipping
+                self.logger.log_debug(f"IP {ip} queued for pinging")
             else:
-                self.logger.log_warning(f"Queue is full. Failed to queue ping for IP: {ip}")
+                self.logger.log_info("Queue is full, ping skipped for IP: {}".format(ip))
         except queue.Full:
             self.logger.log_error(f"Failed to queue ping task for IP: {ip} due to full queue")
 
@@ -208,7 +200,6 @@ class NetworkOperations:
         command = ['ping', '-n', str(attempts), '-w', str(timeout * 1000), ip] if platform.system() == 'Windows' else ['ping', '-c', str(attempts), '-W', str(timeout), ip]
         try:
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
-            self.logger.log_debug(f"Ping completed for IP {ip}: STDOUT: {result.stdout} STDERR: {result.stderr}")
             if result.returncode == 0:
                 ping_lines = result.stdout.splitlines()
                 time_matches = [re.search(r'time=(\d+)ms', line) for line in ping_lines]
@@ -219,23 +210,24 @@ class NetworkOperations:
                 else:
                     status = "Online, No time reported"
             else:
-                status = "Offline, Host Unreachable" if "100% loss" in result.stdout or "Destination Host Unreachable" in result.stdout else "Offline, Ping Failed"
+                status = "Offline, Host Unreachable" if "Destination Host Unreachable" in result.stdout else "Offline, Ping Failed"
         except subprocess.TimeoutExpired:
-            self.logger.log_error(f"Ping request for IP {ip} timed out")
+            self.logger.log_warning(f"Ping timeout for IP: {ip}")
             status = "Offline, Ping Timeout"
-        except Exception as e:
-            self.logger.log_error(f"An error occurred while pinging IP {ip}: {str(e)}")
+        except subprocess.CalledProcessError as e:
+            self.logger.log_error(f"Ping process error for IP {ip}: {e}")
             status = "Offline, Error"
-        finally:
-            self.update_callback(ip, status)
+        except Exception as e:
+            self.logger.log_critical(f"Unexpected error during ping operation for IP {ip}: {e}")
+            status = "Offline, Unknown Error"
+        self.update_callback(ip, status)
 
     def stop_workers(self):
         for _ in range(len(self.workers)):
             self.task_queue.put(None)
-        self.logger.log_info("All worker threads have been stopped")
+            self.logger.log_info("Stopping worker threads")
 
 class DeviceDialog(simpledialog.Dialog):
-
     def __init__(self, master, existing_details=None, action=None):
         self.logger = LogManager.get_instance()
         self.logger.log_debug("Initializing DeviceDialog")
@@ -260,12 +252,17 @@ class DeviceDialog(simpledialog.Dialog):
             self.name_var = tk.StringVar(master, self.existing_details['Name'])
             self.ip_var = tk.StringVar(master, self.existing_details['IP'])
             self.type_var = tk.StringVar(master, self.existing_details['Type'])
-            key_entry = Entry(master, textvariable=self.key_var, state='readonly').grid(row=0, column=1)
-            location_entry = Entry(master, textvariable=self.location_var).grid(row=1, column=1)
-            name_entry = Entry(master, textvariable=self.name_var).grid(row=2, column=1)
-            ip_entry = Entry(master, textvariable=self.ip_var).grid(row=3, column=1)
-            type_entry = Entry(master, textvariable=self.type_var).grid(row=4, column=1)
-            return key_entry  # Focus on the key entry widget by default
+            key_entry = Entry(master, textvariable=self.key_var, state='readonly')
+            key_entry.grid(row=0, column=1)
+            location_entry = Entry(master, textvariable=self.location_var)
+            location_entry.grid(row=1, column=1)
+            name_entry = Entry(master, textvariable=self.name_var)
+            name_entry.grid(row=2, column=1)
+            ip_entry = Entry(master, textvariable=self.ip_var)
+            ip_entry.grid(row=3, column=1)
+            type_entry = Entry(master, textvariable=self.type_var)
+            type_entry.grid(row=4, column=1)
+            return key_entry
         except Exception as e:
             self.logger.log_error("Failed to create body for DeviceDialog: " + str(e))
             raise e
@@ -278,18 +275,16 @@ class DeviceDialog(simpledialog.Dialog):
                 'Name': self.name_var.get(),
                 'IP': self.ip_var.get(),
                 'Type': self.type_var.get(),
-                'Status': 'Unknown'  # Default status for new device, edits do not change status here
+                'Status': 'Unknown'
             }
             if self.action:
                 self.action(details)
             self.result = details
-            self.logger.log_info("Changes applied in DeviceDialog")
         except Exception as e:
             self.logger.log_error("Failed to apply changes in DeviceDialog: " + str(e))
             raise e
 
 class PingSettingsDialog(simpledialog.Dialog):
-
     def __init__(self, master, num_attempts, timeout_duration, config_manager):
         self.logger = LogManager.get_instance()
         self.logger.log_debug("Initializing PingSettingsDialog")
@@ -302,29 +297,26 @@ class PingSettingsDialog(simpledialog.Dialog):
     def body(self, master):
         Label(master, text="Number of Attempts:").grid(row=0, column=0)
         self.num_attempts_var = tk.StringVar(value=str(self.num_attempts))
-        num_attempts_entry = Entry(master, textvariable=self.num_attempts_var).grid(row=0, column=1)
+        self.num_attempts_entry = Entry(master, textvariable=self.num_attempts_var)
+        self.num_attempts_entry.grid(row=0, column=1)
         Label(master, text="Timeout Duration (seconds):").grid(row=1, column=0)
         self.timeout_duration_var = tk.StringVar(value=str(self.timeout_duration))
-        timeout_duration_entry = Entry(master, textvariable=self.timeout_duration_var).grid(row=1, column=1)
-        return num_attempts_entry  # Focus on the number of attempts entry widget by default
+        self.timeout_duration_entry = Entry(master, textvariable=self.timeout_duration_var)
+        self.timeout_duration_entry.grid(row=1, column=1)
+        return self.num_attempts_entry
 
     def apply(self):
-        try:
-            num_attempts = int(self.num_attempts_var.get())
-            timeout_duration = int(self.timeout_duration_var.get())
-            if num_attempts > 10:
-                messagebox.showerror("Invalid Input", "Number of attempts cannot exceed 10.")
-                self.logger.log_warning("Invalid input: Number of attempts cannot exceed 10.")
-                return
-            self.config_manager.save_settings(num_attempts, timeout_duration)
-            self.master.update_refresh_interval()
-            self.logger.log_info("Ping settings updated successfully")
-        except Exception as e:
-            self.logger.log_error("Failed to apply settings in PingSettingsDialog: " + str(e))
-            raise e
+        num_attempts = int(self.num_attempts_var.get())
+        timeout_duration = int(self.timeout_duration_var.get())
+        if num_attempts > 10:
+            messagebox.showerror("Invalid Input", "Number of attempts cannot exceed 10.")
+            self.logger.log_error("Number of attempts cannot exceed 10.")
+            return
+        self.config_manager.save_settings(num_attempts, timeout_duration)
+        self.master.update_refresh_interval()
+        self.logger.log_info("Ping settings updated from settings dialog.")
 
 class Application(tk.Frame):
-
     def __init__(self, master=None):
         self.logger = LogManager.get_instance()
         self.logger.log_debug("Initializing Application")
@@ -340,7 +332,7 @@ class Application(tk.Frame):
         self.create_widgets()
         self.load_devices()
         self.update_status()
-        self.logger.log_info("Application initialized successfully")
+        self.logger.log_debug("Application initialized successfully")
 
     def create_menu(self):
         menubar = tk.Menu(self.master)
@@ -368,16 +360,13 @@ class Application(tk.Frame):
         self.master.bind("<Control-i>", lambda event: self.show_about())
 
     def quit_app(self):
-        self.logger.log_info("Application is shutting down")
         self.master.quit()
 
     def open_online_help(self):
         webbrowser.open_new_tab(hyperlink)
-        self.logger.log_info("Online help opened")
 
     def show_about(self):
         messagebox.showinfo("About Python NetMon", f"Python NetMon {version}\nDeveloped by: Chris Collins\nA simple network monitoring tool built with Python and Tkinter.\nFor more information, visit: {hyperlink}")
-        self.logger.log_info("About dialog shown")
 
     def create_widgets(self):
         self.pack(fill='both', expand=True)
@@ -388,7 +377,7 @@ class Application(tk.Frame):
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor='center')
         self.tree.heading("Key", text="Key")
-        self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)  # Hide the 'Key' column
+        self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)
         self.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
         style = ttk.Style()
         style.configure("Treeview", font=('Helvetica', 10))
@@ -405,7 +394,6 @@ class Application(tk.Frame):
         button_frame.grid(row=1, column=1, pady=10)
 
     def load_devices(self):
-        start_time = time.time()
         try:
             self.tree.delete(*self.tree.get_children())
             devices = self.device_manager.load_devices()
@@ -413,8 +401,6 @@ class Application(tk.Frame):
                 tag = "Pending" if device['Status'] == "Pending" else ("Offline" if device['Status'] == "Offline" else "Online")
                 self.tree.insert("", "end", values=(device['Key'], device['Location'], device['Name'], device['IP'], device['Type'], device['Status']), tags=(tag,))
             self.sort_devices()
-            elapsed_time = time.time() - start_time
-            self.logger.log_info(f"Devices loaded in {elapsed_time:.2f} seconds")
         except Exception as e:
             self.logger.log_error("Failed to load devices: " + str(e))
 
@@ -424,7 +410,7 @@ class Application(tk.Frame):
         elif 5 < self.config_manager.ping_attempts <= 10:
             self.refresh_interval = 90
         self.countdown = self.refresh_interval
-        self.logger.log_info(f"Refresh interval set to {self.refresh_interval} seconds based on ping attempts.")
+        self.logger.log_debug(f"Refresh interval set to {self.refresh_interval} seconds based on ping attempts.")
 
     def refresh(self):
         self.tree.delete(*self.tree.get_children())
@@ -432,14 +418,13 @@ class Application(tk.Frame):
         for device in devices:
             self.tree.insert("", "end", values=(device['Key'], device['Location'], device['Name'], device['IP'], device['Type'], "Pending", "N/A"), tags=("Pending",))
             self.network_ops.ping_device(device['IP'])
-        self.logger.log_info("All devices refreshed")
+        self.logger.log_debug("Successfully refreshed all devices.")
 
     def sort_devices(self):
         l = [(self.tree.set(k, "Status"), k) for k in self.tree.get_children('')]
         l.sort(key=lambda t: (t[0] != "Offline", t[0] == "Online"))
         for index, (val, k) in enumerate(l):
             self.tree.move(k, '', index)
-        self.logger.log_debug("Devices sorted")
 
     def update_status(self):
         if self.countdown > 0:
@@ -455,7 +440,6 @@ class Application(tk.Frame):
         self.master.after(0, lambda: self._update_device_status(ip, status))
 
     def _update_device_status(self, ip, status):
-        self.logger.log_info(f"Updating status for IP {ip} to {status}")
         for child in self.tree.get_children():
             values = self.tree.item(child, 'values')
             if values[3] == ip:
@@ -477,7 +461,6 @@ class Application(tk.Frame):
             dialog = PingSettingsDialog(self, self.config_manager.ping_attempts, self.config_manager.ping_timeout, self.config_manager)
             if dialog.result:
                 self.update_refresh_interval()
-                self.logger.log_info("Settings dialog opened and settings updated")
         except Exception as e:
             self.logger.log_error("Failed to open settings dialog: " + str(e))
 
@@ -492,14 +475,13 @@ class Application(tk.Frame):
                 self.device_manager.save_device(new_device)
                 self.refresh()
                 messagebox.showinfo("Add Device", "Device successfully added.")
-                self.logger.log_info(f"New device added: {new_device['IP']}")
+                self.logger.log_info(f"Device added: {new_device}")
             else:
                 messagebox.showerror("Add Device", "Failed to add device. Invalid input details.")
 
     def validate_device(self, device):
         try:
             ipaddress.ip_address(device['IP'])
-            self.logger.log_info(f"Device IP address validated: {device['IP']}")
             return True
         except ValueError:
             self.logger.log_error(f"Invalid IP address: {device['IP']}")
@@ -518,15 +500,14 @@ class Application(tk.Frame):
                 'Status': item[5]
             }
             dialog = DeviceDialog(self.master, existing_details, self.update_device)
+            self.logger.log_info(f"Editing device with Key: {existing_details['Key']}")
             if dialog.result:
                 self.refresh()
-                self.logger.log_info(f"Device edited: {existing_details['Key']}")
 
     def update_device(self, new_details):
         device_key = new_details['Key']
         self.device_manager.update_device(device_key, new_details)
         self.refresh()
-        self.logger.log_info(f"Device updated: {device_key}")
 
     def delete_device(self):
         selected_items = self.tree.selection()
