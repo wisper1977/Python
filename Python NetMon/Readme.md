@@ -99,8 +99,13 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 ### v1.1.1.1 - Error Handling and Logging
 **Release Date:** TBD
 Security Enhancements:
-- Minor Bug Fixes
-- Enhanced logging
+- Granular Error Handling: Refined error reporting across various parts of the application:
+- Configuration Management: Now captures specific exceptions related to configuration errors, such as parsing errors and missing configuration files.
+- Device Management: Enhanced file operation error handling, including specific exceptions when reading, writing, and updating device information.
+- Network Operations: Improved error handling during network activities such as pinging, capturing specific network-related exceptions like timeouts and subprocess errors.
+- Logging Improvements: Extended the logging functionality to provide more detailed information regarding the operation status and errors, aiding in easier diagnostics and troubleshooting.
+- GUI Adjustments: Minor updates to the GUI components for better user interaction and error feedback, ensuring a more responsive and user-friendly interface.
+- Code Refinements: Adjusted existing code for better clarity and efficiency, focusing on robust handling of potential runtime exceptions and ensuring the stability of the application.
 
 ### v1.1.1 - GUI Update
 **Release Date:** May 8, 2024
