@@ -95,7 +95,7 @@ The application supports several keyboard shortcuts to make navigation and opera
 Make sure a device is selected in the main window for edit or delete shortcuts to work.
 
 ## Version History
-<<<<<<< Python-NetMon-1.1.1.1
+
 ### v1.1.1.1 - Error Handling and Logging
 **Release Date:** May 10, 2024
 
