@@ -96,7 +96,7 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 
 ## Version History
 
-### v1.1.1.1 - Current Version
+### v1.1.1.1 - Error Handling and Logging
 **Release Date:** TBD
 Security Enhancements:
 - Minor Bug Fixes
