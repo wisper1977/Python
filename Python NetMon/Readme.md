@@ -117,6 +117,7 @@ Major Improvements:
 - Feature Extensions: Added capabilities for modifying network ping settings through a dedicated settings dialog, giving users the flexibility to adjust the number of attempts and timeout settings dynamically. Introduced functionality to edit and delete device configurations directly from the UI, enhancing user interaction and ease of management.
 - Code Refactoring: Refactored major parts of the codebase for better readability and maintainability. Segregated functionalities into clearer, purpose-driven modules and classes. Enhanced comments and documentation within the code to align with Python best practices, aiding future contributors and maintainers of the project.
 - Security and Validation: Implemented rigorous validation for device IP addresses upon entry to prevent errors related to malformed inputs. Enhanced error handling mechanisms to prevent application crashes and ensure user operations are handled gracefully.
+
 Bug Fixes:
 - Addressed issues where the application could become unresponsive during prolonged network activities.
 - Fixed bugs related to device configuration saving and loading that could cause incorrect data handling.
