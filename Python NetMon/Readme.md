@@ -97,7 +97,7 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 ## Version History
 <<<<<<< Python-NetMon-1.1.1.1
 ### v1.1.1.1 - Error Handling and Logging
-**Release Date:** TBD
+**Release Date:** May 10, 2024
 
 Security Enhancements:
 - Granular Error Handling: Refined error reporting across various parts of the application:
