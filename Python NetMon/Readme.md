@@ -10,6 +10,7 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
 - [Usage](#usage)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Version History](#version-history)
+- [Future Plans](#future-plans)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -152,6 +153,10 @@ UI Updates:
 - Basic network monitoring capabilities.
 - Ping devices manually to check connectivity.
 - Display results in a simple user interface.
+
+## Future Plans
+- log viewer
+- log archiver
 
 ## Contributing
 
