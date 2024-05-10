@@ -155,6 +155,7 @@ UI Updates:
 - Display results in a simple user interface.
 
 ## Future Plans
+- Code Restructure: Split the code into seperate files to improve proformance.
 - Log Rotation and Archiving: Ensure logs are rotated and archived properly to avoid consuming too much disk space, which might already be handled but could be enhanced with compression or more complex retention policies.
 - Detailed Device Views: Allow users to click on a device in the list to view more detailed information or statistics in a separate dialog or pane.
 - Input Validation: Rigorously validate all inputs, especially those that could affect network operations or subprocess invocations, to prevent injection attacks.
