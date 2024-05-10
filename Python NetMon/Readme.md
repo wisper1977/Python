@@ -98,6 +98,7 @@ Make sure a device is selected in the main window for edit or delete shortcuts t
 
 ### v1.1.1.1 - Error Handling and Logging
 **Release Date:** TBD
+
 Security Enhancements:
 - Granular Error Handling: Refined error reporting across various parts of the application:
 - Configuration Management: Now captures specific exceptions related to configuration errors, such as parsing errors and missing configuration files.
@@ -108,7 +109,6 @@ Security Enhancements:
 - Code Refinements: Adjusted existing code for better clarity and efficiency, focusing on robust handling of potential runtime exceptions and ensuring the stability of the application.
 
 ### v1.1.1 - GUI Update
-
 **Release Date:** May 8, 2024
 
 Major Improvements:
@@ -126,6 +126,7 @@ Bug Fixes:
 
 ### v1.1.0 - Major Update
 **Release Date:** April 20, 2024
+
 Major Improvements:
 - Introduced the device editing and deleting functionality.
 - Added validation for IP addresses when adding or editing devices.
@@ -136,18 +137,21 @@ Major Improvements:
 
 ### v1.0.4 - Additional Features
 **Release Date:** April 5, 2024
+
 New Features:
 - Implemented device editing and deletion capabilities.
 - Added support for saving device configurations.
 
 ### v1.0.3 - User Interface Improvements
 **Release Date:** March 20, 2024
+
 UI Updates:
 - Enhanced user interface with better layout and navigation.
 - Added color coding to status indicators for devices.
 
 ### v1.0.2 - Performance Enhancements
 **Release Date:** March 15, 2024
+
 - Fixed a bug in the network pinging process where timeouts were not handled correctly.
 - Updated UI responsiveness during network scans.
 - Optimized the network ping process for faster response times.
@@ -155,6 +159,7 @@ UI Updates:
 
 ### v1.0.1 - Bug Fixes
 **Release Date:** February 25, 2024
+
 - Minor bug fixes in the configuration management.
 - Improved error messages for easier troubleshooting.
 - Fixed an issue where ping results were not updating correctly.
@@ -162,6 +167,7 @@ UI Updates:
 
 ### v1.0.0 - Initial Release
 **Release Date:** February 10, 2024
+
 - Features Introduced:
 - Basic network monitoring capabilities.
 - Ping devices manually to check connectivity.
