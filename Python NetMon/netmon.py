@@ -1,273 +1,429 @@
-import configparser, csv, subprocess, platform, ipaddress, logging, queue, re, webbrowser
+# Version: 1.1.2.1
+
+# Import required libraries
+import configparser, csv, subprocess, platform, logging, queue, re, webbrowser, os
 import tkinter as tk
 from queue import Queue
 from threading import Thread
 from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox
 from logging.handlers import RotatingFileHandler
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-version = "1.1.2"
+# Application metadata
+version = "1.1.2.1"
 hyperlink = "https://tinyurl.com/PyNetMon"
+developer = "Chris Collins"
 
 class LogManager:
     _instance = None
 
     @classmethod
     def get_instance(cls):
+        """Get the singleton instance of the LogManager class."""
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
 
     def __init__(self):
-        if LogManager._instance is not None:
-            raise Exception("This class is a singleton!")
-        else:
-            LogManager._instance = self
-        self.setup_logging()
+        """Initialize the LogManager instance with a rotating file handler."""
+        try:
+            if LogManager._instance is not None:
+                raise Exception("This class is a singleton!")
+            else:
+                LogManager._instance = self
+            self.setup_logging()
+        except Exception as e:
+            logging.error(f"Error initializing LogManager: {e}")
+            raise e
 
     def setup_logging(self):
-        log_directory = Path('log')
-        log_directory.mkdir(exist_ok=True)
-        log_file_path = log_directory / 'log_file.txt'
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                RotatingFileHandler(log_file_path, maxBytes=10*1024*1024, backupCount=5),
-                logging.StreamHandler()
-            ]
-        )
-
+        """Setup logging configuration for the application."""
+        try:
+            log_directory = Path('log')
+            log_directory.mkdir(exist_ok=True)
+            log_file_path = log_directory / 'log_file.txt'
+            logging.basicConfig(
+                level=logging.DEBUG,
+                format='%(asctime)s - %(levelname)s - %(message)s',
+                handlers=[
+                    RotatingFileHandler(log_file_path, maxBytes=10*1024*1024, backupCount=5),
+                    logging.StreamHandler()
+                ]
+            )
+        except Exception as e:
+            logging.error(f"Error setting up logging: {e}")
+            raise e
+        
     def log_info(self, message):
-        logging.info(message)
+        """Log an info message."""
+        try:
+            logging.info(message)
+        except Exception as e:
+            logging.error(f"Error logging info message: {e}")
+            raise e
 
     def log_debug(self, message):
-        logging.debug(message)
+        """Log a debug message."""
+        try:
+            logging.debug(message)
+        except Exception as e:
+            logging.error(f"Error logging debug message: {e}")
+            raise e
 
     def log_warning(self, message):
-        logging.warning(message)
+        """Log a warning message."""
+        try:
+            logging.warning(message)
+        except Exception as e:
+            logging.error(f"Error logging warning message: {e}")
+            raise e
 
     def log_error(self, message):
-        logging.error(message)
+        """Log an error message and raise an exception."""
+        try:
+            logging.error(message)
+        except Exception as e:
+            logging.error(f"Error logging error message: {e}")
+            raise e
 
     def log_critical(self, message):
-        logging.critical(message)
+        """Log a critical message and raise an exception."""
+        try:
+            logging.critical(message)
+        except Exception as e:
+            logging.error(f"Error logging critical message: {e}")
+            raise e
 
 class ConfigManager:
+    """Class to manage the configuration settings for the application."""
+    DEFAULT_CONFIG = {
+        'DEFAULT': {
+            'refreshinterval': '30',
+            'logfile': 'device_status_log.txt'
+        },
+        'PING': {
+            'attempts': '3',
+            'timeout': '15'
+        }
+    }
+
     def __init__(self, config_path='config/config.ini'):
+        """Initialize the ConfigManager with a path to the configuration file."""
         self.logger = LogManager.get_instance()
+        self.logger.log_debug("Initializing ConfigManager")
         self.config_path = Path(config_path)
         self.config = configparser.ConfigParser()
+
         try:
-            self.load_config()
-        except configparser.Error as e:
-            self.logger.log_error(f"Configuration parsing error: {e}")
-        except FileNotFoundError:
-            self.logger.log_error("Configuration file not found, using default settings.")
-            self.use_default_config()
+            self.load_or_create_config()
         except Exception as e:
             self.logger.log_critical(f"Unexpected error during configuration initialization: {e}")
 
-    def load_config(self):
-        if not self.config_path.exists():
-            self.config['PING'] = {'Attempts': '3', 'Timeout': '100'}
-            with open(self.config_path, 'w') as configfile:
-                self.config.write(configfile)
-            self.logger.log_debug("No config file found. Created a new one with default settings.")
-        else:
-            self.config.read(self.config_path)
-            self.logger.log_debug("Config file loaded successfully.")
-        self.ping_attempts = self.config.getint('PING', 'Attempts')
-        self.ping_timeout = self.config.getint('PING', 'Timeout')
-
-    def save_settings(self, attempts, timeout):
-        # Validate the number of attempts before attempting to save
-        if attempts > 10:
-            self.logger.log_error("Attempt to set ping attempts greater than 10. Limiting to 10.")
-            attempts = 10
-
-        # Prepare settings to be saved
+    def load_or_create_config(self):
+        """Load the configuration file if it exists, otherwise create a new one."""
         try:
-            self.config.set('PING', 'Attempts', str(attempts))
-            self.config.set('PING', 'Timeout', str(timeout))
-
-            # Write configuration to file safely
+            if not os.path.exists(self.config_path):
+                self.create_default_config()
+            else:
+                try:
+                    self.load_config()
+                except Exception as e:
+                    self.logger.log_error(f"Error loading configuration file: {e}")
+                    self.logger.log_warning("Using default settings due to configuration file error.")
+                    self.use_default_config()
+        except Exception as e:
+            self.logger.log_critical(f"Error loading or creating configuration file: {e}")
+            raise e
+                  
+    def create_default_config(self):
+        """Create a new configuration file with default settings if it doesn't exist."""
+        try:
+            self.config.read_dict(ConfigManager.DEFAULT_CONFIG)
             with open(self.config_path, 'w') as configfile:
                 self.config.write(configfile)
-            self.logger.log_debug(f"Settings saved: Attempts={attempts}, Timeout={timeout}")
+            self.logger.log_info("No config file found. Created a new one with default settings.")
+        except configparser.Error as e:
+            self.logger.log_error(f"Configuration parsing error while creating default config: {e}")
+            raise e
+        except Exception as e:
+            self.logger.log_critical(f"Unexpected error during default configuration creation: {e}")
+            raise e
 
-            # Reload the configuration to reflect changes
-            self.load_config()
+    def load_config(self):
+        """Load the configuration file from disk."""
+        try:
+            self.config.read(self.config_path)
+            self.logger.log_info("Config file loaded successfully.")
+        except configparser.ParsingError as e:
+            self.logger.log_error(f"Configuration parsing error: {e}")
+        except Exception as e:
+            self.logger.log_critical(f"Unexpected error during configuration reading: {e}")
 
-        except IOError as e:
-            self.logger.log_error(f"Failed to save settings to file: {e}")
+    def use_default_config(self):
+        """Use the default configuration settings if the file is missing or corrupted."""
+        try:
+            self.config.read_dict(ConfigManager.DEFAULT_CONFIG)
+        except configparser.Error as e:
+            self.logger.log_error(f"Configuration parsing error while using default config: {e}")
+            raise e
+        except Exception as e:
+            self.logger.log_critical(f"Unexpected error using default configuration: {e}")
+            raise e
+        
+    def save_settings(self, section, setting, value):
+        """Save a setting to the configuration file."""
+        try:
+            if section not in self.config.sections() and section != 'DEFAULT':
+                self.config.add_section(section)
+            self.config.set(section, setting, str(value))
+            with open(self.config_path, 'w') as configfile:
+                self.config.write(configfile)
+            self.logger.log_info(f"Config updated: [{section}] {setting} = {value}")
+            self.load_config()  # Reload to apply changes
         except configparser.Error as e:
             self.logger.log_error(f"Configuration parsing error while saving settings: {e}")
         except Exception as e:
             self.logger.log_critical(f"Unexpected error while saving settings: {e}")
 
-    def use_default_config(self):
-        self.config['PING'] = {'Attempts': '3', 'Timeout': '100'}
-        self.save_settings(3, 100)  # Save default settings
-
-class DeviceManager:
-    def __init__(self, filepath='config/equipment.csv'):
-        self.logger = LogManager.get_instance()
-        self.filepath = Path(filepath)
-        if not self.filepath.exists():
+    def get_setting(self, section, option, fallback=None):
+        """Get a setting from the configuration file with optional fallback value."""
+        try:
+            return self.config.get(section, option, fallback=fallback)
+        except configparser.NoOptionError:
+            self.logger.log_error(f"No option '{option}' in section '{section}'")
+            return fallback
+        except configparser.NoSectionError:
+            self.logger.log_error(f"No section '{section}' found")
+            return fallback
+        except Exception as e:
+            self.logger.log_error(f"Error retrieving setting: {e}")
+            return fallback
+        
+class DeviceFileHandler:
+    def __init__(self, filepath):
+        """Initialize the DeviceFileHandler with a filepath and LogManager instance."""
+        try:
+            self.filepath = Path(filepath)
+            self.logger = LogManager.get_instance()
             self.initialize_device_file()
+        except Exception as e:
+            self.logger.log_error(f"Failed to initialize DeviceFileHandler: {e}")
+            raise e
 
     def initialize_device_file(self):
+        """Initialize the device file with a header if it doesn't exist."""
         try:
-            # Ensure the directory exists, create if not
             self.filepath.parent.mkdir(parents=True, exist_ok=True)
-
-            # Check if the file exists, create and initialize if not
             if not self.filepath.exists():
                 with open(self.filepath, mode='w', newline='') as file:
                     writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
                     writer.writeheader()
                 self.logger.log_info("Device file created with header.")
             else:
-                self.logger.log_debug("Device file already exists.")
-
-            self.logger.log_debug("DeviceManager initialized successfully.")
-
+                # Check file integrity upon initialization
+                if not self.check_file_integrity():
+                    # Log and raise an exception if file integrity check fails
+                    self.logger.log_warning("Device file integrity check failed upon initialization.")
+                    raise IOError("Device file integrity check failed.")
         except IOError as e:
             self.logger.log_error(f"Failed to create or access device file: {e}")
+            raise e
 
+    def check_file_integrity(self):
+        """Check if the device file has the required fields in the header."""
+        try:
+            with open(self.filepath, mode='r', newline='') as file:
+                reader = csv.reader(file)
+                header = next(reader)
+                required_fields = ["Key", "Location", "Name", "IP", "Type", "Status"]
+                # Check if header contains all required fields
+                if not all(field in header for field in required_fields):
+                    return False
+            return True
         except Exception as e:
-            self.logger.log_critical(f"Unexpected error during device manager initialization: {e}")
+            self.logger.log_error(f"Error while checking device file integrity: {e}")
+            return False
 
-    def load_devices(self):
+    def read_devices(self):
+        """Read the devices from the device file and return as a list of dictionaries."""
         try:
             with open(self.filepath, mode='r', newline='') as file:
                 return list(csv.DictReader(file))
         except IOError as e:
             self.logger.log_error(f"Failed to read device file: {e}")
-            return []
-        
-    def generate_new_key(self):
-        try:
-            with open(self.filepath, mode='r', newline='') as file:
-                devices = csv.DictReader(file)
-                max_key = max((int(row['Key']) for row in devices), default=0)
-                return max_key + 1
-        except IOError as e:
-            self.logger.log_error(f"Failed to read device file for generating new key: {e}")
-            return 1  # Return a default key if file reading fails
+            raise e
 
-    def save_device(self, device):
+    def write_devices(self, devices):
+        """Write the list of devices to the device file."""
         try:
-            with open(self.filepath, mode='a', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
-                writer.writerow(device)
-            self.logger.log_debug(f"Device saved successfully: {device}")
-        except IOError as e:
-            self.logger.log_error(f"Failed to save device: {e}")
-
-    def delete_device(self, device_key):
-        try:
-            devices = self.load_devices()
-            devices = [device for device in devices if device['Key'] != device_key]
             with open(self.filepath, mode='w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
                 writer.writeheader()
                 writer.writerows(devices)
+            self.logger.log_debug("Device file updated successfully.")
         except IOError as e:
+            self.logger.log_error(f"Failed to write to device file: {e}")
+            raise e
+
+class DeviceManager:
+    def __init__(self, filepath='config/equipment.csv'):
+        """Initialize the DeviceManager with a DeviceFileHandler and LogManager."""
+        try:
+            self.file_handler = DeviceFileHandler(filepath)
+            self.logger = LogManager.get_instance()
+        except Exception as e:
+            self.logger.log_error(f"Failed to initialize DeviceManager: {e}")
+            raise e
+
+    def load_devices(self):
+        """Load the devices from the device file."""
+        try:
+            return self.file_handler.read_devices()
+        except Exception as e:
+            self.logger.log_error(f"Failed to load devices: {e}")
+            return []
+
+    def save_device(self, device):
+        """Save a new device to the device file."""
+        try:
+            devices = self.load_devices()
+            # Ensure uniqueness of keys
+            new_key = self.generate_new_key(devices)
+            device['Key'] = str(new_key)
+            devices.append(device)
+            self.file_handler.write_devices(devices)
+        except Exception as e:
+            self.logger.log_error(f"Failed to save device: {e}")
+
+    def delete_device(self, device_key):
+        """Delete a device with the given key from the device file."""
+        try:
+            devices = self.load_devices()
+            original_count = len(devices)
+            devices = [device for device in devices if device['Key'] != str(device_key)]
+            if len(devices) == original_count:
+                self.logger.log_warning(f"No device found with Key: {device_key} to delete.")
+            else:
+                self.logger.log_info(f"Device with Key: {device_key} deleted.")
+                self.file_handler.write_devices(devices)
+        except Exception as e:
             self.logger.log_error(f"Failed to delete device: {e}")
 
     def update_device(self, device_key, new_details):
+        """Update the details of a device with the given key."""
         try:
             devices = self.load_devices()
-            updated = False
             for device in devices:
-                if device['Key'] == device_key:
+                if device['Key'] == str(device_key):
                     device.update(new_details)
-                    updated = True
-            if updated:
-                with open(self.filepath, mode='w', newline='') as file:
-                    writer = csv.DictWriter(file, fieldnames=["Key", "Location", "Name", "IP", "Type", "Status"])
-                    writer.writeheader()
-                    writer.writerows(devices)
-        except IOError as e:
+            self.file_handler.write_devices(devices)
+        except Exception as e:
             self.logger.log_error(f"Failed to update device: {e}")
 
-class NetworkOperations:
-    def __init__(self, config, update_callback, max_queue_size=100):
-        self.logger = LogManager.get_instance()
-        self.logger.log_debug("Initializing NetworkOperations")
-        self.config = config
-        self.update_callback = update_callback
-        self.task_queue = Queue(maxsize=max_queue_size)  # Set maximum queue size
-        self.worker_count = 10  # Increase number of workers if needed
-        self.workers = [Thread(target=self.worker) for _ in range(self.worker_count)]
-        for worker in self.workers:
-            worker.daemon = True
-            worker.start()
-        self.logger.log_debug("NetworkOperations initialized successfully")
+    def generate_new_key(self, devices=None):
+        """Generate a new unique key for a device based on existing keys."""
+        try:
+            max_key = max((int(device['Key']) for device in devices), default=0)
+            return max_key + 1
+        except Exception as e:
+            self.logger.log_error(f"Failed to generate new key: {e}")
+            return 1  # Default to 1 if key generation fails
 
-    def worker(self):
-        while True:
-            try:
-                ip = self.task_queue.get(timeout=3)  # Wait for a task or timeout
-                if ip is None:  # Check if the worker should shut down
-                    self.task_queue.task_done()
-                    break
-                self.logger.log_info(f"Processing ping for IP: {ip}")
-                self._ping(ip)
-                self.task_queue.task_done()
-            except queue.Empty:
-                self.logger.log_error("Worker queue is empty")
-                continue
+class NetworkOperations:
+    def __init__(self, config, update_callback, max_workers=10):
+        """Initialize the NetworkOperations class with a ThreadPoolExecutor."""
+        try:
+            self.config = config
+            self.update_callback = update_callback
+            self.executor = ThreadPoolExecutor(max_workers=max_workers)
+            self.logger = LogManager.get_instance()
+            self.logger.log_debug("NetworkOperations initialized with ThreadPoolExecutor.")
+        except Exception as e:
+            self.logger.log_error(f"Failed to initialize NetworkOperations: {e}")
+            raise e
 
     def ping_device(self, ip):
+        """Submit a ping task to the ThreadPoolExecutor for the given IP address."""
         try:
-            if not self.task_queue.full():
-                self.task_queue.put(ip, timeout=1)  # Wait a bit before skipping
-                self.logger.log_debug(f"IP {ip} queued for pinging")
-            else:
-                self.logger.log_info("Queue is full, ping skipped for IP: {}".format(ip))
-        except queue.Full:
-            self.logger.log_error(f"Failed to queue ping task for IP: {ip} due to full queue")
+            future = self.executor.submit(self._ping, ip)
+            future.add_done_callback(lambda x: self.process_ping_result(x, ip))
+        except Exception as e:
+            self.logger.log_error(f"Error submitting ping task for device {ip}: {e}")
+            self.update_callback(ip, "Error: Failed to submit ping task")
 
     def _ping(self, ip):
-        attempts = self.config.ping_attempts
-        timeout = self.config.ping_timeout
-        command = ['ping', '-n', str(attempts), '-w', str(timeout * 1000), ip] if platform.system() == 'Windows' else ['ping', '-c', str(attempts), '-W', str(timeout), ip]
+        """Perform a ping operation on the given IP address."""
         try:
+            self.logger.log_info(f"Pinging device with IP: {ip}")
+            attempts = int(self.config.get_setting('PING', 'attempts', '3'))
+            timeout = int(self.config.get_setting('PING', 'timeout', '100'))
+            command = self._construct_ping_command(ip, attempts, timeout)
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
-            if result.returncode == 0:
-                ping_lines = result.stdout.splitlines()
-                time_matches = [re.search(r'time=(\d+)ms', line) for line in ping_lines]
-                times = [float(match.group(1)) for match in time_matches if match]
-                if times:
-                    avg_time = sum(times) / len(times)
-                    status = f"Online, Avg ping: {avg_time:.2f} ms"
-                else:
-                    status = "Online, No time reported"
-            else:
-                status = "Offline, Host Unreachable" if "Destination Host Unreachable" in result.stdout else "Offline, Ping Failed"
+            return result
         except subprocess.TimeoutExpired:
-            self.logger.log_warning(f"Ping timeout for IP: {ip}")
-            status = "Offline, Ping Timeout"
+            return "Offline, Ping Timeout"
         except subprocess.CalledProcessError as e:
-            self.logger.log_error(f"Ping process error for IP {ip}: {e}")
-            status = "Offline, Error"
+            self.logger.log_error(f"Error pinging {ip}: {e}")
+            return f"Offline, Ping Error: {e}"
         except Exception as e:
-            self.logger.log_critical(f"Unexpected error during ping operation for IP {ip}: {e}")
-            status = "Offline, Unknown Error"
-        self.update_callback(ip, status)
+            self.logger.log_error(f"Unexpected error pinging {ip}: {e}")
+            return f"Offline, Unexpected Error: {e}"
 
-    def stop_workers(self):
-        for _ in range(len(self.workers)):
-            self.task_queue.put(None)
-            self.logger.log_info("Stopping worker threads")
+    def process_ping_result(self, future, ip):
+        """Process the result of the ping operation and update the device status."""
+        try:
+            result = future.result()
+            if isinstance(result, str):
+                status = result
+            else:
+                if result.returncode == 0:
+                    status = self._parse_ping_output(result.stdout)
+                else:
+                    status = "Offline, Host Unreachable" if "Destination Host Unreachable" in result.stdout else "Offline, Ping Failed"
+            self.update_callback(ip, status)
+            self.logger.log_info(f"Result for device with IP {ip}: {status}")
+        except Exception as e:
+            self.logger.log_error(f"Error processing ping result for device {ip}: {e}")
+            self.update_callback(ip, "Error: Failed to process ping result")
+
+    def _construct_ping_command(self, ip, attempts, timeout):
+        """Construct the ping command based on the OS."""
+        try:
+            if platform.system() == 'Windows':
+                return ['ping', '-n', str(attempts), '-w', str(timeout * 1000), ip]
+            else:
+                return ['ping', '-c', str(attempts), '-W', str(timeout), ip]
+        except Exception as e:
+            self.logger.log_error(f"Error constructing ping command: {e}")
+            return []
+
+    def _parse_ping_output(self, output):
+        """Parse the output of the ping command to extract the average time."""
+        try:
+            ping_lines = output.splitlines()
+            time_matches = [re.search(r'time=(\d+)ms', line) for line in ping_lines]
+            times = [float(match.group(1)) for match in time_matches if match]
+            if times:
+                avg_time = sum(times) / len(times)
+                return f"Online, Avg ping: {avg_time:.2f} ms"
+            return "Online, No time reported"
+        except Exception as e:
+            self.logger.log_error(f"Error parsing ping output: {e}")
+            return "Online, Error parsing ping output"
+   
+    def shutdown(self):
+        """Shutdown the ThreadPoolExecutor for network operations."""
+        try:
+            self.executor.shutdown(wait=False)
+            self.logger.log_info("NetworkOperations shutdown initiated.")
+        except Exception as e:
+            self.logger.log_error(f"Error shutting down NetworkOperations: {e}")
 
 class DeviceDialog(simpledialog.Dialog):
     def __init__(self, master, existing_details=None, action=None):
+        """DeviceDialog constructor to initialize the dialog window."""
         self.logger = LogManager.get_instance()
-        self.logger.log_debug("Initializing DeviceDialog")
         try:
             self.existing_details = existing_details or {'Key': '', 'Location': '', 'Name': '', 'IP': '', 'Type': '', 'Status': 'Unknown'}
             self.action = action
@@ -278,6 +434,7 @@ class DeviceDialog(simpledialog.Dialog):
             raise e
 
     def body(self, master):
+        """Build the body of the dialog with input fields for device details."""
         try:
             Label(master, text="Key:").grid(row=0, column=0)
             Label(master, text="Location:").grid(row=1, column=0)
@@ -305,6 +462,7 @@ class DeviceDialog(simpledialog.Dialog):
             raise e
 
     def apply(self):
+        """Apply the changes made in the dialog to the device details."""
         try:
             details = {
                 'Key': self.key_var.get(),
@@ -320,246 +478,382 @@ class DeviceDialog(simpledialog.Dialog):
         except Exception as e:
             self.logger.log_error("Failed to apply changes in DeviceDialog: " + str(e))
             raise e
-
+      
 class PingSettingsDialog(simpledialog.Dialog):
-    def __init__(self, master, num_attempts, timeout_duration, config_manager):
+    def __init__(self, master, config_manager):
+        """PingSettingsDialog constructor to initialize the dialog window."""
         self.logger = LogManager.get_instance()
-        self.logger.log_debug("Initializing PingSettingsDialog")
-        self.num_attempts = num_attempts
-        self.timeout_duration = timeout_duration
-        self.config_manager = config_manager
-        super().__init__(master, title="Ping Settings")
-        self.logger.log_info("PingSettingsDialog initialized successfully")
+        try:
+            self.config_manager = config_manager
+            self.num_attempts = int(self.config_manager.get_setting('PING', 'attempts', '5'))
+            self.timeout_duration = int(self.config_manager.get_setting('PING', 'timeout', '15'))
+            super().__init__(master, title="Ping Settings")
+            self.logger.log_info("PingSettingsDialog initialized successfully")
+        except Exception as e:
+            self.logger.log_error("Failed to initialize PingSettingsDialog: " + str(e))
+            raise e
 
     def body(self, master):
-        Label(master, text="Number of Attempts:").grid(row=0, column=0)
-        self.num_attempts_var = tk.StringVar(value=str(self.num_attempts))
-        self.num_attempts_entry = Entry(master, textvariable=self.num_attempts_var)
-        self.num_attempts_entry.grid(row=0, column=1)
-        Label(master, text="Timeout Duration (seconds):").grid(row=1, column=0)
-        self.timeout_duration_var = tk.StringVar(value=str(self.timeout_duration))
-        self.timeout_duration_entry = Entry(master, textvariable=self.timeout_duration_var)
-        self.timeout_duration_entry.grid(row=1, column=1)
-        return self.num_attempts_entry
+        """Build the body of the dialog with input fields for settings."""
+        try:
+            Label(master, text="Number of Attempts:").grid(row=0, column=0)
+            self.num_attempts_var = tk.StringVar(value=str(self.num_attempts))
+            self.num_attempts_entry = Entry(master, textvariable=self.num_attempts_var)
+            self.num_attempts_entry.grid(row=0, column=1)
+            Label(master, text="Timeout Duration (seconds):").grid(row=1, column=0)
+            self.timeout_duration_var = tk.StringVar(value=str(self.timeout_duration))
+            self.timeout_duration_entry = Entry(master, textvariable=self.timeout_duration_var)
+            self.timeout_duration_entry.grid(row=1, column=1)
+            return self.num_attempts_entry
+        except Exception as e:
+            self.logger.log_error("Failed to create body for PingSettingsDialog: " + str(e))
+            raise e
 
     def apply(self):
-        num_attempts = int(self.num_attempts_var.get())
-        timeout_duration = int(self.timeout_duration_var.get())
-        if num_attempts > 10:
-            messagebox.showerror("Invalid Input", "Number of attempts cannot exceed 10.")
-            self.logger.log_error("Number of attempts cannot exceed 10.")
-            return
-        self.config_manager.save_settings(num_attempts, timeout_duration)
-        self.master.update_refresh_interval()
-        self.logger.log_info("Ping settings updated from settings dialog.")
+        """Apply the changes made in the dialog to the configuration file."""
+        try:
+            num_attempts = int(self.num_attempts_var.get())
+            timeout_duration = int(self.timeout_duration_var.get())
+            if num_attempts > 10:
+                messagebox.showerror("Invalid Input", "Number of attempts cannot exceed 10.")
+                self.logger.log_error("Number of attempts cannot exceed 10.")
+                return
+            # Save settings using the new method
+            self.config_manager.save_settings('PING', 'attempts', num_attempts)
+            self.config_manager.save_settings('PING', 'timeout', timeout_duration)
+            self.logger.log_info("Ping settings updated from settings dialog.")
+        except Exception as e:
+            self.logger.log_error("Failed to apply changes in PingSettingsDialog: " + str(e))
+            raise e
+
+class ApplicationGUI:
+    def __init__(self, master, app):
+        """Initialize the GUI with a reference to the main application and device manager."""
+        self.logger = LogManager.get_instance()
+        self.master = master
+        self.app = app  # Reference to the main application class to access business logic
+        self.device_manager = DeviceManager()
+        try:
+            self.create_menu()
+            self.create_widgets()
+            self.load_devices()
+        except Exception as e:
+            self.logger.log_error("Failed to initialize GUI: " + str(e))
+            raise e
+
+    def create_menu(self):
+        """Create the menu bar with File, Edit, View, and Help menus."""
+        try:
+            menubar = tk.Menu(self.master)
+            file_menu = tk.Menu(menubar, tearoff=0)
+            edit_menu = tk.Menu(menubar, tearoff=0)
+            help_menu = tk.Menu(menubar, tearoff=0)
+            
+            file_menu.add_command(label="Settings", accelerator="Ctrl+S", command=self.open_settings)
+            file_menu.add_separator()
+            file_menu.add_command(label="Exit", accelerator="Ctrl+Q", command=self.quit_app)
+            edit_menu.add_command(label="Add Device", accelerator="Ctrl+A", command=self.add_device)
+            edit_menu.add_command(label="Edit Device", accelerator="Ctrl+E", command=self.edit_device)
+            edit_menu.add_command(label="Delete Device", accelerator="Ctrl+D", command=self.delete_device)
+            help_menu.add_command(label="Online Help", accelerator="Ctrl+H", command=self.open_online_help)
+            help_menu.add_command(label="About", accelerator="Ctrl+I", command=self.show_about)
+            self.master.bind("<Control-s>", lambda event: self.open_settings())
+            self.master.bind("<Control-q>", lambda event: self.quit_app())
+            self.master.bind("<Control-a>", lambda event: self.add_device())
+            self.master.bind("<Control-e>", lambda event: self.edit_device())
+            self.master.bind("<Control-d>", lambda event: self.delete_device())
+            self.master.bind("<Control-h>", lambda event: self.open_online_help())
+            self.master.bind("<Control-i>", lambda event: self.show_about())
+
+            menubar.add_cascade(label="File", menu=file_menu)
+            menubar.add_cascade(label="Edit", menu=edit_menu)
+            #menubar.add_cascade(label="View", menu=view_menu)
+            menubar.add_cascade(label="Help", menu=help_menu)
+            self.master.config(menu=menubar)
+        except Exception as e:
+            self.logger.log_error("Failed to create menu: " + str(e))
+            raise e
+
+    def create_widgets(self):
+        """Create the main widgets for the application."""
+        try:
+            self.tree = ttk.Treeview(self.master, columns=("Key", "Location", "Name", "IP", "Type", "Status"), show="headings")
+            for col in ["Key", "Location", "Name", "IP", "Type", "Status"]:
+                self.tree.heading(col, text=col)
+                self.tree.column(col, anchor="center")
+            self.tree.heading("Key", text="Key")
+            self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)
+            self.tree.grid(sticky='nsew', padx=10, pady=10)
+            self.master.grid_rowconfigure(0, weight=1)
+        
+            # Timer label
+            self.timer_label = tk.Label(self.master, text="")
+            self.timer_label.grid(sticky='ew', padx=10, pady=10)
+            self.master.grid_rowconfigure(1, weight=0)  # Less space to the timer label
+            self.master.grid_columnconfigure(0, weight=1)
+        except Exception as e:
+            self.logger.log_error("Failed to create widgets: " + str(e))
+            raise e
+
+    def add_device(self):
+        """Open a dialog to add a new device and save it to the device file."""
+        try:
+            dialog = DeviceDialog(self.master)
+            if dialog.result:
+                new_device = dialog.result
+                new_key = self.device_manager.generate_new_key()
+                new_device['Key'] = str(new_key)
+                self.device_manager.save_device(new_device)
+                self.load_devices()
+        except Exception as e:
+            self.logger.log_error("Failed to add device: " + str(e))
+            raise e
+
+    def edit_device(self):
+        """Open a dialog to edit an existing device and save the changes to the device file."""
+        try:
+            selected_item = self.tree.selection()
+            if selected_item:
+                item = self.tree.item(selected_item[0], "values")
+                if item:
+                    existing_details = {
+                        'Key': item[0],
+                        'Location': item[1],
+                        'Name': item[2],
+                        'IP': item[3],
+                        'Type': item[4],
+                        'Status': item[5]
+                    }
+                    dialog = DeviceDialog(self.master, existing_details=existing_details)
+                    if dialog.result:
+                        self.device_manager.update_device(dialog.result['Key'], dialog.result)
+                        self.load_devices()
+        except Exception as e:
+            self.logger.log_error("Failed to edit device: " + str(e))
+            raise e
+
+    def delete_device(self):
+        """Delete the selected device from the device file."""
+        try:
+            selected_item = self.tree.selection()
+            if selected_item:
+                item = self.tree.item(selected_item[0])
+                device_key = item['values'][0]  # Assuming 'Key' is the first column in values
+                response = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete the device with Key: {device_key}?")
+                if response:
+                    self.device_manager.delete_device(device_key)
+                    self.load_devices()
+        except Exception as e:
+            self.logger.log_error("Failed to delete device: " + str(e))
+            raise e
+
+    def load_devices(self):
+        """Load the devices from the device file and populate the TreeView."""
+        try:
+            # Clear all current items from the tree
+            for item in self.tree.get_children():
+                self.tree.delete(item)
+            
+            # Load fresh device data
+            devices = self.app.device_manager.load_devices()
+            for device in devices:
+                color = 'red' if device['Status'] == 'Offline' else 'white'
+                self.tree.insert("", "end", values=(device['Key'], device['Location'], device['Name'], device['IP'], device['Type'], device['Status']), tags=(color,))
+                self.tree.tag_configure(color, background=color)
+        except Exception as e:
+            self.logger.log_error("Failed to load devices: " + str(e))
+            raise e
+
+    def initiate_refresh_cycle(self):
+        """Initialize the refresh cycle with dynamic interval based on ping attempts."""
+        try:
+            self.refresh_network_status()
+        except Exception as e:
+            self.logger.log_error("Failed to initiate refresh cycle: " + str(e))
+            raise e
+
+    def refresh_network_status(self):
+        """Refresh the network status of all devices periodically."""
+        try:
+            self.update_device_statuses()
+            interval = int(self.config_manager.get_setting('DEFAULT', 'refreshinterval', '30'))
+            self.countdown = interval
+            self.after(interval * 1000, self.refresh_network_status)
+        except Exception as e:
+            self.logger.log_error("Failed to refresh network status: " + str(e))
+            raise e
+
+    def update_refresh_interval(self):
+        """Update the refresh interval based on the number of ping attempts."""
+        try:
+            interval = int(self.config_manager.get_setting('DEFAULT', 'refreshinterval', '30'))
+            self.after(interval * 1000, self.refresh_network_status)
+        except Exception as e:
+            self.logger.log_error("Failed to update refresh interval: " + str(e))
+            raise e
+
+    def refresh_network_status(self):
+        """Refresh the network status of all devices periodically."""
+        try:
+            ping_attempts = int(self.app.config_manager.get_setting('PING', 'attempts', '5'))
+            if ping_attempts <= 5:
+                interval = 60  # Refresh every 60 seconds if attempts are 5 or fewer
+            elif 6 <= ping_attempts <= 10:
+                interval = 90  # Refresh every 90 seconds if attempts are between 6 and 10
+            else:
+                interval = 90  # Cap at 90 seconds for more than 10 attempts
+                ping_attempts = 10  # Cap the number of attempts at 10
+                self.config_manager.save_settings('PING', 'attempts', '10')  # Save capped value
+
+            self.update_device_statuses()
+            self.countdown = interval
+            self.update_timer_label()
+            self.master.after(interval * 1000, self.refresh_network_status)
+        except Exception as e:
+            self.logger.log_error("Failed to refresh network status: " + str(e))
+            raise e
+
+    def update_device_statuses(self):
+        """Update the status of each device by sending ping requests."""
+        try:
+            devices = self.device_manager.load_devices()
+            for device in devices:
+                self.app.network_ops.ping_device(device['IP'])
+        except Exception as e:
+            self.logger.log_error("Failed to update device statuses: " + str(e))
+            raise e
+
+    def update_timer_label(self):
+        """Update the timer label to show the countdown until the next refresh."""
+        try:
+            if self.countdown > 0:
+                self.timer_label.config(text=f"Next update in {self.countdown} seconds")
+                self.countdown -= 1
+                self.master.after(1000, self.update_timer_label)  # Schedule the label to update in 1 second
+            else:
+                self.timer_label.config(text="Updating...")
+        except Exception as e:
+            self.logger.log_error("Failed to update timer label: " + str(e))
+            raise e
+
+    def sort_devices(self):
+        """Sort devices by status, putting 'Offline' devices on top."""
+        try:
+            # Create a list of tuples (status, tree item id)
+            l = [(self.tree.set(k, "Status"), k) for k in self.tree.get_children('')]
+            # Sort so that 'Offline' comes first, followed by 'Online' and others
+            l.sort(key=lambda t: (t[0] != "Offline", t))
+            # Rearrange items in the treeview based on their new sort order
+            for index, (val, k) in enumerate(l):
+                self.tree.move(k, '', index)
+        except Exception as e:
+            self.logger.log_error("Failed to sort devices: " + str(e))
+            raise e
+
+    def open_settings(self):
+        """Open the settings dialog to configure the refresh interval and ping settings."""
+        try:
+            dialog = PingSettingsDialog(self.master, self.app.config_manager)
+            if dialog.result:
+                self.refresh_network_status()  # Immediately refresh to apply new settings
+        except Exception as e:
+            self.logger.log_error("Failed to open settings dialog: " + str(e))
+            raise e
+
+    def open_online_help(self):
+        """Open the online help page in the default web browser."""
+        try:
+            webbrowser.open_new_tab(hyperlink)
+        except Exception as e:
+            self.logger.log_error("Failed to open online help: " + str(e))
+            raise e
+
+    def show_about(self):
+        """Display the 'About' dialog with information about the application."""
+        try:
+            messagebox.showinfo("About Python NetMon", f"Version: {version}\nDeveloped by: {developer}\nA simple network monitoring tool built with Python and Tkinter.")
+        except Exception as e:
+            self.logger.log_error("Failed to show about dialog: " + str(e))
+            raise e
+
+    def quit_app(self):
+        """Quit the application and perform cleanup operations."""
+        try:
+            self.master.quit()
+        except Exception as e:
+            self.logger.log_error("Failed to quit application: " + str(e))
+            raise e
 
 class Application(tk.Frame):
     def __init__(self, master=None):
-        self.logger = LogManager.get_instance()
-        self.logger.log_debug("Initializing Application")
-        super().__init__(master)
-        self.master = master
-        self.master.title("Python NetMon")
-        self.master.state('zoomed')
-        self.config_manager = ConfigManager()
-        self.device_manager = DeviceManager()
-        self.network_ops = NetworkOperations(self.config_manager, self.update_device_status)
-        self.update_refresh_interval()
-        self.create_menu()
-        self.create_widgets()
-        self.load_devices()
-        self.update_status()
-        self.logger.log_debug("Application initialized successfully")
-
-    def create_menu(self):
-        menubar = tk.Menu(self.master)
-        self.master.config(menu=menubar)
-        file_menu = tk.Menu(menubar, tearoff=0)
-        edit_menu = tk.Menu(menubar, tearoff=0)
-        help_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="File", menu=file_menu)
-        menubar.add_cascade(label="Edit", menu=edit_menu)
-        menubar.add_cascade(label="Help", menu=help_menu)
-        file_menu.add_command(label="Settings", accelerator="Ctrl+S", command=self.open_settings)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", accelerator="Ctrl+Q", command=self.quit_app)
-        edit_menu.add_command(label="Add Device", accelerator="Ctrl+A", command=self.add_device)
-        edit_menu.add_command(label="Edit Device", accelerator="Ctrl+E", command=self.edit_device)
-        edit_menu.add_command(label="Delete Device", accelerator="Ctrl+D", command=self.delete_device)
-        help_menu.add_command(label="Online Help", accelerator="Ctrl+H", command=self.open_online_help)
-        help_menu.add_command(label="About", accelerator="Ctrl+I", command=self.show_about)
-        self.master.bind("<Control-s>", lambda event: self.open_settings())
-        self.master.bind("<Control-q>", lambda event: self.quit_app())
-        self.master.bind("<Control-a>", lambda event: self.add_device())
-        self.master.bind("<Control-e>", lambda event: self.edit_device())
-        self.master.bind("<Control-d>", lambda event: self.delete_device())
-        self.master.bind("<Control-h>", lambda event: self.open_online_help())
-        self.master.bind("<Control-i>", lambda event: self.show_about())
-
-    def quit_app(self):
-        self.master.quit()
-
-    def open_online_help(self):
-        webbrowser.open_new_tab(hyperlink)
-
-    def show_about(self):
-        messagebox.showinfo("About Python NetMon", f"Python NetMon {version}\nDeveloped by: Chris Collins\nA simple network monitoring tool built with Python and Tkinter.\nFor more information, visit: {hyperlink}")
-
-    def create_widgets(self):
-        self.pack(fill='both', expand=True)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.tree = ttk.Treeview(self, columns=("Key", "Location", "Name", "IP", "Type", "Status", "Avg Ping"), show="headings")
-        for col in ["Key", "Location", "Name", "IP", "Type", "Status", "Avg Ping"]:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, anchor='center')
-        self.tree.heading("Key", text="Key")
-        self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)
-        self.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
-        style = ttk.Style()
-        style.configure("Treeview", font=('Helvetica', 10))
-        style.map('Treeview', background=[('selected', 'blue')])
-        style.configure("Offline.Treeview")
-        style.configure("Pending.Treeview")
-        style.configure("Online.Treeview")
-        bottom_frame = tk.Frame(self)
-        bottom_frame.grid(row=1, column=0, sticky='ew')
-        bottom_frame.grid_columnconfigure(1, weight=1)
-        self.status_label = tk.Label(bottom_frame, text=f"Next update in {self.countdown} seconds")
-        self.status_label.grid(row=0, column=1)
-        button_frame = tk.Frame(bottom_frame)
-        button_frame.grid(row=1, column=1, pady=10)
-
-    def load_devices(self):
+        """Initialize the main application with the root window and setup the GUI."""
         try:
-            self.tree.delete(*self.tree.get_children())
-            devices = self.device_manager.load_devices()
-            for device in devices:
-                tag = "Pending" if device['Status'] == "Pending" else ("Offline" if device['Status'] == "Offline" else "Online")
-                self.tree.insert("", "end", values=(device['Key'], device['Location'], device['Name'], device['IP'], device['Type'], device['Status']), tags=(tag,))
-            self.sort_devices()
+            super().__init__(master)
+            self.master = master
+            self.master.title("Python NetMon")
+            self.master.state('zoomed')
+            
+            self.setup_logging()
+            self.config_manager = ConfigManager()
+            self.device_manager = DeviceManager(filepath='config/equipment.csv')
+            self.gui = ApplicationGUI(master, self)
+            self.network_ops = self.setup_network_operations()
+
+            self.gui.load_devices()
+            self.gui.initiate_refresh_cycle()
         except Exception as e:
-            self.logger.log_error("Failed to load devices: " + str(e))
+            self.logger.log_error("Failed to initialize application: " + str(e))
+            raise e
+   
+    def setup_logging(self):
+        """Setup logging configuration for the application."""
+        try:
+            self.logger = LogManager.get_instance()
+            self.logger.log_debug("Application initializing...")
+        except Exception as e:
+            self.logger.log_error("Failed to setup logging: " + str(e))
+            raise e
 
-    def update_refresh_interval(self):
-        if self.config_manager.ping_attempts <= 5:
-            self.refresh_interval = 60
-        elif 5 < self.config_manager.ping_attempts <= 10:
-            self.refresh_interval = 90
-        self.countdown = self.refresh_interval
-        self.logger.log_debug(f"Refresh interval set to {self.refresh_interval} seconds based on ping attempts.")
+    def setup_network_operations(self):
+        """Setup the NetworkOperations class with a callback to update the device status in the GUI."""
+        try:
+            update_callback = self.update_device_status  # Delegate to GUI
+            return NetworkOperations(self.config_manager, update_callback)
+        except Exception as e: 
+            self.logger.log_error("Failed to setup NetworkOperations: " + str(e))
+            raise e
 
-    def refresh(self):
-        self.tree.delete(*self.tree.get_children())
-        devices = self.device_manager.load_devices()
-        for device in devices:
-            self.tree.insert("", "end", values=(device['Key'], device['Location'], device['Name'], device['IP'], device['Type'], "Pending", "N/A"), tags=("Pending",))
-            self.network_ops.ping_device(device['IP'])
-        self.logger.log_debug("Successfully refreshed all devices.")
-
-    def sort_devices(self):
-        l = [(self.tree.set(k, "Status"), k) for k in self.tree.get_children('')]
-        l.sort(key=lambda t: (t[0] != "Offline", t[0] == "Online"))
-        for index, (val, k) in enumerate(l):
-            self.tree.move(k, '', index)
-
-    def update_status(self):
-        if self.countdown > 0:
-            self.status_label.config(text=f"Next update in {self.countdown} seconds")
-            self.countdown -= 1
-            self.master.after(1000, self.update_status)
-        else:
-            self.refresh()
-            self.countdown = self.refresh_interval
-            self.master.after(1000, self.update_status)
+    def setup_gui(self):
+        """Setup the GUI for the application."""
+        try:
+            self.create_menu()
+            self.create_widgets()
+            self.pack(fill='both', expand=True)
+        except Exception as e:
+            self.logger.log_error("Failed to setup GUI: " + str(e))
+            raise e
 
     def update_device_status(self, ip, status):
-        self.master.after(0, lambda: self._update_device_status(ip, status))
+        """Update the status of a specific device in the TreeView."""
+        def update():
+            """Update the status of the device in the TreeView."""
+            try:
+                for item in self.gui.tree.get_children():
+                    device = self.gui.tree.item(item)['values']
+                    if device[3] == ip:
+                        color = 'red' if status.startswith('Offline') else 'white'
+                        self.gui.tree.item(item, values=(device[0], device[1], device[2], device[3], device[4], status), tags=(color,))
+                        self.gui.tree.tag_configure(color, background=color)
+                self.gui.sort_devices()
+            except Exception as e:
+                LogManager.get_instance().log_error("Failed to update device status: " + str(e))
+                # Handle the error appropriately
 
-    def _update_device_status(self, ip, status):
-        for child in self.tree.get_children():
-            values = self.tree.item(child, 'values')
-            if values[3] == ip:
-                new_values = list(values)
-                if ", Avg ping:" in status:
-                    status, avg_ping = status.split(", Avg ping:")
-                    new_values[5] = status.strip()
-                    new_values[6] = avg_ping.strip()
-                else:
-                    new_values[5] = status
-                    new_values[6] = "N/A"
-                tag = 'Offline' if "Offline" in status else 'Online' if "Online" in status else 'Pending'
-                self.tree.item(child, values=new_values, tags=(tag,))
-                self.tree.tag_configure(tag, background='red' if tag == 'Offline' else 'yellow' if tag == 'Pending' else 'white')
-        self.sort_devices()
-
-    def open_settings(self):
-        try:
-            dialog = PingSettingsDialog(self, self.config_manager.ping_attempts, self.config_manager.ping_timeout, self.config_manager)
-            if dialog.result:
-                self.update_refresh_interval()
-        except Exception as e:
-            self.logger.log_error("Failed to open settings dialog: " + str(e))
-
-    def add_device(self):
-        dialog = DeviceDialog(self.master)
-        if dialog.result:
-            new_device = dialog.result
-            if self.validate_device(new_device):
-                new_key = self.device_manager.generate_new_key()
-                new_device['Key'] = str(new_key)
-                new_device['Status'] = "Pending"
-                self.device_manager.save_device(new_device)
-                self.refresh()
-                messagebox.showinfo("Add Device", "Device successfully added.")
-                self.logger.log_info(f"Device added: {new_device}")
-            else:
-                messagebox.showerror("Add Device", "Failed to add device. Invalid input details.")
-
-    def validate_device(self, device):
-        try:
-            ipaddress.ip_address(device['IP'])
-            return True
-        except ValueError:
-            self.logger.log_error(f"Invalid IP address: {device['IP']}")
-            return False
-
-    def edit_device(self):
-        selected_items = self.tree.selection()
-        if selected_items:
-            item = self.tree.item(selected_items[0], "values")
-            existing_details = {
-                'Key': item[0],
-                'Location': item[1],
-                'Name': item[2],
-                'IP': item[3],
-                'Type': item[4],
-                'Status': item[5]
-            }
-            dialog = DeviceDialog(self.master, existing_details, self.update_device)
-            self.logger.log_info(f"Editing device with Key: {existing_details['Key']}")
-            if dialog.result:
-                self.refresh()
-
-    def update_device(self, new_details):
-        device_key = new_details['Key']
-        self.device_manager.update_device(device_key, new_details)
-        self.refresh()
-
-    def delete_device(self):
-        selected_items = self.tree.selection()
-        if selected_items:
-            item = self.tree.item(selected_items[0], "values")
-            device_key = item[0]
-            response = messagebox.askyesno("Delete Device", f"Are you sure you want to delete the device with Key {device_key}?")
-            if response:
-                self.device_manager.delete_device(device_key)
-                self.refresh()
-                self.logger.log_info(f"Device with Key {device_key} deleted.")
-        else:
-            messagebox.showinfo("Delete Device", "Please select a device to delete.")
-
+        # Schedule the update operation to run in the main GUI thread
+        self.master.after(0, update)
+    
 if __name__ == "__main__":
+    """Main entry point for the application."""
     log_manager = LogManager.get_instance()
     log_manager.log_info("Application started")
     root = tk.Tk()
