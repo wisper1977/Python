@@ -1,4 +1,4 @@
-# Version: 1.1.2.1
+# Version: 1.1.2
 
 # Import required libraries
 import configparser, csv, subprocess, platform, logging, queue, re, webbrowser, os
@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Application metadata
-version = "1.1.2.1"
+version = "1.1.2"
 hyperlink = "https://tinyurl.com/PyNetMon"
 developer = "Chris Collins"
 
