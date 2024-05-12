@@ -1,4 +1,4 @@
-# Version: 1.1.2
+# Version: 1.1.3
 
 # Import required libraries
 import configparser, csv, subprocess, platform, logging, queue, re, webbrowser, os
@@ -6,14 +6,19 @@ import tkinter as tk
 from queue import Queue
 from threading import Thread
 from pathlib import Path
-from tkinter import ttk, simpledialog, Label, Entry, messagebox
+from tkinter import ttk, simpledialog, Label, Entry, messagebox, scrolledtext
 from logging.handlers import RotatingFileHandler
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta
+from shutil import move
 
-# Application metadata
-version = "1.1.2"
+# Define global variables
+version = "1.1.3"
 hyperlink = "https://tinyurl.com/PyNetMon"
 developer = "Chris Collins"
+log_directory = Path("log")
+log_file_path = log_directory / 'log_file.txt'
+archive_directory = log_directory / 'archive'
 
 class LogManager:
     _instance = None
@@ -95,6 +100,206 @@ class LogManager:
             logging.error(f"Error logging critical message: {e}")
             raise e
 
+class LogViewerGUI:
+    def __init__(self, master, app):
+        self.logger = LogManager.get_instance() # Get the singleton instance of LogManager
+        self.master = master # Reference to the main application window
+        self.app = app # Reference to the main application class to access business logic
+        self.log_reader = LogReader(log_file_path)
+        self.log_writer = LogWriter(log_file_path)
+        self.last_archive_time = datetime.now()  # Initialize the last archive time
+     
+    def update_log_display(self):
+        """Update the log content in the log viewer."""
+        try:
+            with open(log_file_path, 'r') as log_file:
+                log_content = log_file.readlines()
+
+            # Filter the logs by the selected log level
+            log_level = self.log_level.get()
+            if log_level != "ALL":
+                log_content = [line for line in log_content if log_level in line]
+
+            self.log_text.delete('1.0', tk.END)  # Clear the current log content
+            self.log_text.insert(tk.END, ''.join(log_content))  # Insert the new log content
+        except FileNotFoundError:
+            self.logger.log_error("Log file not found, creating a new one.")
+            with open('log_file.txt', "w") as file:
+                pass
+        except PermissionError:
+            self.logger.log_error("Permission denied when trying to update log display.")
+            messagebox.showerror("Error", "Permission denied when trying to update log display.")
+        except Exception as e:
+            self.logger.log_error("Failed to update log display: " + str(e))
+            messagebox.showerror("Error", "Failed to update log display: " + str(e))
+             
+    def open_log_viewer(self):
+        """Open a new window to display logs."""
+        try:
+            log_window = tk.Toplevel(self.master)
+            log_window.attributes('-topmost', True)  # Keep the window on top
+            log_window.title("Log Viewer")  # Set the title of the log window
+
+            # Create a menu bar
+            menubar = tk.Menu(log_window)
+            log_window.config(menu=menubar)
+
+            # Create a log menu and add it to the menu bar
+            log_menu = tk.Menu(menubar, tearoff=0)
+            menubar.add_cascade(label="Logs", menu=log_menu)
+
+            # Add "Refresh Logs" and "Clear Logs" options to the log menu
+            log_menu.add_command(label="Refresh Logs", command=self.update_log_display)
+            log_menu.add_command(label="Clear Logs", command=lambda: self.clear_log_confirmation(self.log_text))
+
+            # Create a dropdown menu to select the log level
+            self.log_level = tk.StringVar(log_window)
+            self.log_level.set("ALL")  # default value
+            log_level_options = ["ALL", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+            log_level_dropdown = tk.OptionMenu(log_window, self.log_level, *log_level_options, command=lambda _: self.update_log_display())
+            log_level_dropdown.pack()
+
+            # Create a ScrolledText widget for log display in the new window
+            self.log_text = scrolledtext.ScrolledText(log_window, height=20, width=80)
+            self.log_text.pack(padx=10, pady=10, fill='both', expand=True)
+
+            self.update_log_display()  # Initialize with log content
+            self.auto_refresh_log_display()  # Start auto-refresh
+        except FileNotFoundError:
+            self.logger.log_error("Log file not found when trying to open log viewer.")
+            messagebox.showerror("Error", "Log file not found when trying to open log viewer.")
+            return
+        except PermissionError:
+            self.logger.log_error("Permission denied when trying to open log viewer.")
+            messagebox.showerror("Error", "Permission denied when trying to open log viewer.")
+            return
+        except Exception as e:
+            self.logger.log_error("Failed to open log viewer: " + str(e))
+            messagebox.showerror("Error", "Failed to open log viewer: " + str(e))
+            return
+        
+    def clear_log_confirmation(self, log_text_widget):
+        """Ask for confirmation before clearing logs."""
+        try:
+            if messagebox.askyesno("Clear Logs", "Are you sure you want to clear all logs?"):
+                self.log_writer.clear_logs(log_text_widget)
+        except PermissionError:
+            self.logger.log_error("Permission denied when trying to clear logs.")
+            messagebox.showerror("Error", "Permission denied when trying to clear logs.")
+        except FileNotFoundError:
+            self.logger.log_error("Log file not found when trying to clear logs.")
+            messagebox.showerror("Error", "Log file not found when trying to clear logs.")
+        except Exception as e:
+            self.logger.log_error("Failed to clear logs: " + str(e))
+            raise e
+                
+    def auto_refresh_log_display(self):
+        """Auto refresh the log content."""
+        try:
+            self.update_log_display()
+            self.log_text.after(120000, self.auto_refresh_log_display)
+            print("Current time: ", datetime.now())
+            print("Last archive time: ", self.last_archive_time)
+            print("Time delta: ", timedelta(hours=24))
+            if datetime.now() - self.last_archive_time >= timedelta(hours=24):  # If it's been 24 hours since the last archive
+                self.archive_logs()  # Archive the current log file
+            self.logger.log_info("Log display auto-refreshed.")
+        except PermissionError:
+            self.logger.log_error("Permission denied when trying to auto refresh log display.")
+            messagebox.showerror("Error", "Permission denied when trying to auto refresh log display.")
+        except FileNotFoundError:
+            self.logger.log_error("Log file not found when trying to auto refresh log display.")
+            messagebox.showerror("Error", "Log file not found when trying to auto refresh log display.")
+        except Exception as e:
+            self.logger.log_error("Failed to auto refresh log display: " + str(e))
+            raise e
+
+class LogReader:
+    def __init__(self, log_file_path):
+        """Initialize the LogReader with a path to the log file."""
+        self.logger = LogManager.get_instance()
+        self.log_file_path = log_file_path
+
+    def read_log_file(self):
+        """Read the log file and return its content."""
+        try:
+            with open(log_directory / 'log_file.txt', "r") as file:
+                return file.readlines()
+        except FileNotFoundError:
+            self.logger.log_error("Log file not found when trying to read log file.")
+            return []
+        except PermissionError:
+            self.logger.log_error("Permission denied when trying to read log file.")
+            return []
+        except Exception as e:
+            self.logger.log_error("Failed to read log file: " + str(e))
+            return []
+
+class LogWriter:
+    def __init__(self, log_file_path):
+        """Initialize the LogWriter with a path to the log file."""
+        self.logger = LogManager.get_instance()
+        self.log_file_path = log_file_path
+
+    def clear_logs(self, log_text_widget):
+        """Clears the log file and updates the display."""
+        try:
+            self.logger.log_info("Attempting to archive logs...")
+            self.archive_logs()  # Archive the current log file before clearing
+            self.logger.log_info("Logs archived successfully.")
+
+            self.logger.log_info("Attempting to clear log file...")
+            with open(log_directory / 'log_file.txt', "w") as file:
+                file.truncate()  # Clear the file content
+            self.logger.log_info("Log file cleared successfully.")
+
+            self.logger.log_info("Attempting to clear log text widget...")
+            log_text_widget.delete(1.0, tk.END)  # Clear the text widget
+            self.logger.log_info("Log text widget cleared successfully.")
+
+            self.logger.log_info("Log file cleared by user.")
+        except PermissionError:
+            self.logger.log_error("Permission denied when trying to clear logs.")
+            messagebox.showerror("Error", "Permission denied when trying to clear logs.")
+        except FileNotFoundError:
+            self.logger.log_error("Log file not found when trying to clear logs.")
+            messagebox.showerror("Error", "Log file not found when trying to clear logs.")
+        except Exception as e:
+            self.logger.log_error("Failed to clear log file: " + str(e))
+            messagebox.showerror("Error", "Failed to clear logs: " + str(e))
+
+    def archive_logs(self):
+        """Archive the current log file."""
+        for i in range(3):  # try 3 times
+            try:
+                archive_directory.mkdir(parents=True, exist_ok=True)  # Ensure the archive directory exists
+                if log_file_path.exists():
+                    # Remove the logger
+                    logging.shutdown()
+
+                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                    archive_file_path = archive_directory / f'log_file_{timestamp}.txt'
+                    move(log_file_path, archive_file_path)
+
+                    # Use the logger from LogManager
+                    self.logger = LogManager.get_instance()
+
+                    self.logger.log_info(f"Archived log file to {archive_file_path} by the system")
+                    self.last_archive_time = datetime.now()  # Update the last archive time
+                break
+            except PermissionError as e:
+                if i < 2:  # if it's not the last try
+                    time.sleep(1)  # wait for 1 second
+                else:  # if it's the last try
+                    self.logger.log_error(f"Error archiving log file: {e}")
+                    raise  # re-raise the last exception
+            except FileNotFoundError as e:
+                self.logger.log_error(f"Log file not found when trying to archive: {e}")
+                raise e
+            except Exception as e:
+                self.logger.log_error(f"Error archiving log file: {e}")
+                raise e
+     
 class ConfigManager:
     """Class to manage the configuration settings for the application."""
     DEFAULT_CONFIG = {
@@ -532,6 +737,7 @@ class ApplicationGUI:
         self.logger = LogManager.get_instance()
         self.master = master
         self.app = app  # Reference to the main application class to access business logic
+        self.log_viewer = LogViewerGUI(master, app)  # Initialize the log viewer window
         self.device_manager = DeviceManager()
         try:
             self.create_menu()
@@ -544,19 +750,31 @@ class ApplicationGUI:
     def create_menu(self):
         """Create the menu bar with File, Edit, View, and Help menus."""
         try:
+            # Create the menu bar
             menubar = tk.Menu(self.master)
             file_menu = tk.Menu(menubar, tearoff=0)
             edit_menu = tk.Menu(menubar, tearoff=0)
+            view_menu = tk.Menu(menubar, tearoff=0)
             help_menu = tk.Menu(menubar, tearoff=0)
             
+            # Adding 'Settings' under 'File'
             file_menu.add_command(label="Settings", accelerator="Ctrl+S", command=self.open_settings)
             file_menu.add_separator()
             file_menu.add_command(label="Exit", accelerator="Ctrl+Q", command=self.quit_app)
+            
+            # Adding 'Add Device', 'Edit Device', and 'Delete Device' under 'Edit'
             edit_menu.add_command(label="Add Device", accelerator="Ctrl+A", command=self.add_device)
             edit_menu.add_command(label="Edit Device", accelerator="Ctrl+E", command=self.edit_device)
             edit_menu.add_command(label="Delete Device", accelerator="Ctrl+D", command=self.delete_device)
+            
+            # Adding 'Log' under 'View'
+            view_menu.add_command(label="View Log", command=self.log_viewer.open_log_viewer)
+        
+            # Adding 'Online Help' and 'About' under 'Help'
             help_menu.add_command(label="Online Help", accelerator="Ctrl+H", command=self.open_online_help)
             help_menu.add_command(label="About", accelerator="Ctrl+I", command=self.show_about)
+            
+            # Binding keyboard shortcuts to menu items
             self.master.bind("<Control-s>", lambda event: self.open_settings())
             self.master.bind("<Control-q>", lambda event: self.quit_app())
             self.master.bind("<Control-a>", lambda event: self.add_device())
@@ -565,9 +783,10 @@ class ApplicationGUI:
             self.master.bind("<Control-h>", lambda event: self.open_online_help())
             self.master.bind("<Control-i>", lambda event: self.show_about())
 
+            # Adding the menus to the menubar
             menubar.add_cascade(label="File", menu=file_menu)
             menubar.add_cascade(label="Edit", menu=edit_menu)
-            #menubar.add_cascade(label="View", menu=view_menu)
+            menubar.add_cascade(label="View", menu=view_menu)
             menubar.add_cascade(label="Help", menu=help_menu)
             self.master.config(menu=menubar)
         except Exception as e:
