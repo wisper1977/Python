@@ -46,7 +46,7 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
 
 2. Navigate to the project directory:
    ```bash
-   cd Python\ NetMon\ 1.1.0
+   cd Python\ NetMon\
 
 No additional installation required if you have Python installed.
 
