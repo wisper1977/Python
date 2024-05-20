@@ -55,6 +55,8 @@ To run the application, navigate to the directory containing the script and run:
 
    python netmon.py
 
+If using on Windows you will have to `Run As Administrator`
+
 ## Device Management
 
 ### Adding a New Device
