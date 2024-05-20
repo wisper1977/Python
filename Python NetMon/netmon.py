@@ -1063,10 +1063,21 @@ class Application(tk.Frame):
                         color = 'red' if status.startswith('Offline') else 'white'
                         self.gui.tree.item(item, values=(device[0], device[1], device[2], device[3], device[4], status), tags=(color,))
                         self.gui.tree.tag_configure(color, background=color)
+                        # Update status in CSV
+                        data = []
+                        with open('config/equipment.csv', 'r') as file:
+                            reader = csv.reader(file)
+                            for row in reader:
+                                if row[3] == ip:
+                                    row[5] = status
+                                data.append(row)
+                        with open('config/equipment.csv', 'w', newline='') as file:
+                            writer = csv.writer(file)
+                            writer.writerows(data)
                 self.gui.sort_devices()
             except Exception as e:
                 LogManager.get_instance().log_error("Failed to update device status: " + str(e))
-                # Handle the error appropriately
+                return e
 
         # Schedule the update operation to run in the main GUI thread
         self.master.after(0, update)
