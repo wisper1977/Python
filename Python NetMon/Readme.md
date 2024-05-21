@@ -36,7 +36,7 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
 
 - Python 3.x
 - Tkinter (typically included with Python)
-- Pygame ( 'pip install pygame')
+- Pygame (  `pip install pygame `)
 - Additional Python libraries: `csv`, `configparser`, `subprocess`, `platform`, `ipaddress`, `logging`, `threading`, `queue`, `re`, `webbrowser`
 
 ## Installation
