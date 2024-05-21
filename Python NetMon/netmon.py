@@ -16,14 +16,6 @@ if os.name == 'nt':  # If the operating system is Windows
 else:
     subprocess.Popen('ping localhost')
     
-# Define global variables
-version = "1.1.3"
-hyperlink = "https://tinyurl.com/PyNetMon"
-developer = "Chris Collins"
-log_directory = Path("log")
-log_file_path = log_directory / 'log_file.txt'
-archive_directory = log_directory / 'archive'
-
 class LogManager:
     _instance = None
 
@@ -109,14 +101,15 @@ class LogViewerGUI:
         self.logger = LogManager.get_instance() # Get the singleton instance of LogManager
         self.master = master # Reference to the main application window
         self.app = app # Reference to the main application class to access business logic
-        self.log_reader = LogReader(log_file_path)
-        self.log_writer = LogWriter(log_file_path)
+        self.log_file_path = Path('log') / 'log_file.txt'
+        self.log_reader = LogReader(self.log_file_path)
+        self.log_writer = LogWriter(self.log_file_path)
         self.last_archive_time = datetime.now()  # Initialize the last archive time
      
     def update_log_display(self):
         """Update the log content in the log viewer."""
         try:
-            with open(log_file_path, 'r') as log_file:
+            with open(self.log_file_path, 'r') as log_file:
                 log_content = log_file.readlines()
 
             # Filter the logs by the selected log level
@@ -244,6 +237,7 @@ class LogWriter:
         """Initialize the LogWriter with a path to the log file."""
         self.logger = LogManager.get_instance()
         self.log_file_path = Path(log_file_path)
+        self.archive_directory = Path('log') / 'archive'
 
     def clear_logs(self, log_text_widget):
         """Clears the log file and updates the display."""
@@ -276,7 +270,7 @@ class LogWriter:
         """Archive the current log file."""
         for i in range(3):  # try 3 times
             try:
-                archive_directory.mkdir(parents=True, exist_ok=True)  # Ensure the archive directory exists
+                self.archive_directory.mkdir(parents=True, exist_ok=True)  # Ensure the archive directory exists
                 if self.log_file_path.exists():
                     # Remove the logger
                     logging.shutdown()
@@ -774,6 +768,9 @@ class ApplicationGUI:
         self.app = app  # Reference to the main application class to access business logic
         self.log_viewer = LogViewerGUI(master, app)  # Initialize the log viewer window
         self.device_manager = DeviceManager()
+        self.version = "1.1.3"
+        self.hyperlink = "https://tinyurl.com/PyNetMon"
+        self.developer = "Chris Collins"
         try:
             self.create_menu()
             self.create_widgets()
@@ -1046,7 +1043,7 @@ class ApplicationGUI:
     def open_online_help(self):
         """Open the online help page in the default web browser."""
         try:
-            webbrowser.open_new_tab(hyperlink)
+            webbrowser.open_new_tab(self.hyperlink)
         except Exception as e:
             self.logger.log_error("Failed to open online help: " + str(e))
             raise e
@@ -1054,7 +1051,7 @@ class ApplicationGUI:
     def show_about(self):
         """Display the 'About' dialog with information about the application."""
         try:
-            messagebox.showinfo("About Python NetMon", f"Version: {version}\nDeveloped by: {developer}\nA simple network monitoring tool built with Python and Tkinter.")
+            messagebox.showinfo("About Python NetMon", f"Version: {self.version}\nDeveloped by: {self.developer}\nA simple network monitoring tool built with Python and Tkinter.")
         except Exception as e:
             self.logger.log_error("Failed to show about dialog: " + str(e))
             raise e
