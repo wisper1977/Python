@@ -1,8 +1,8 @@
 # Version: 1.1.3
 
 # Import required libraries
-import configparser, csv, subprocess, logging, re, winsound
-import platform, webbrowser, os, winsound
+import configparser, csv, subprocess, logging, re, threading
+import webbrowser, os, pygame
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox, scrolledtext
@@ -11,6 +11,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from shutil import move
 
+if os.name == 'nt':  # If the operating system is Windows
+    subprocess.Popen('ping localhost', creationflags=subprocess.CREATE_NO_WINDOW)
+else:
+    subprocess.Popen('ping localhost')
+    
 # Define global variables
 version = "1.1.3"
 hyperlink = "https://tinyurl.com/PyNetMon"
@@ -217,12 +222,12 @@ class LogReader:
     def __init__(self, log_file_path):
         """Initialize the LogReader with a path to the log file."""
         self.logger = LogManager.get_instance()
-        self.log_file_path = log_file_path
+        self.log_file_path = Path(log_file_path)
 
     def read_log_file(self):
         """Read the log file and return its content."""
         try:
-            with open(log_directory / 'log_file.txt', "r") as file:
+            with open(self.log_file_path, "r") as file:
                 return file.readlines()
         except FileNotFoundError:
             self.logger.log_error("Log file not found when trying to read log file.")
@@ -238,7 +243,7 @@ class LogWriter:
     def __init__(self, log_file_path):
         """Initialize the LogWriter with a path to the log file."""
         self.logger = LogManager.get_instance()
-        self.log_file_path = log_file_path
+        self.log_file_path = Path(log_file_path)
 
     def clear_logs(self, log_text_widget):
         """Clears the log file and updates the display."""
@@ -248,7 +253,7 @@ class LogWriter:
             self.logger.log_info("Logs archived successfully.")
 
             self.logger.log_info("Attempting to clear log file...")
-            with open(log_directory / 'log_file.txt', "w") as file:
+            with open(self.log_file_path, "w") as file:
                 file.truncate()  # Clear the file content
             self.logger.log_info("Log file cleared successfully.")
 
@@ -272,13 +277,13 @@ class LogWriter:
         for i in range(3):  # try 3 times
             try:
                 archive_directory.mkdir(parents=True, exist_ok=True)  # Ensure the archive directory exists
-                if log_file_path.exists():
+                if self.log_file_path.exists():
                     # Remove the logger
                     logging.shutdown()
 
                     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    archive_file_path = archive_directory / f'log_file_{timestamp}.txt'
-                    move(log_file_path, archive_file_path)
+                    archive_file_path = self.log_file_path.parent / f'log_file_{timestamp}.txt'
+                    move(self.log_file_path, archive_file_path)
 
                     # Use the logger from LogManager
                     self.logger = LogManager.get_instance()
@@ -327,7 +332,7 @@ class ConfigManager:
     def load_or_create_config(self):
         """Load the configuration file if it exists, otherwise create a new one."""
         try:
-            if not os.path.exists(self.config_path):
+            if not self.config_path.exists():
                 self.create_default_config()
             else:
                 try:
@@ -681,14 +686,17 @@ class NetworkOperations:
     def _construct_ping_command(self, ip, attempts, timeout):
         """Construct the ping command based on the OS."""
         try:
-            if platform.system() == 'Windows':
-                return ['ping', '-n', str(attempts), '-w', str(timeout * 1000), ip]
-            else:
-                return ['ping', '-c', str(attempts), '-W', str(timeout), ip]
+            # Use the -c option for Unix-like systems and -n for Windows
+            count_option = '-c' if os.name != 'nt' else '-n'
+            # Use the -W option for Unix-like systems and -w for Windows
+            timeout_option = '-W' if os.name != 'nt' else '-w'
+            # Convert the timeout to milliseconds for Windows
+            timeout_value = str(timeout * 1000) if os.name == 'nt' else str(timeout)
+            return ['ping', count_option, str(attempts), timeout_option, timeout_value, ip]
         except Exception as e:
             self.logger.log_error(f"Error constructing ping command: {e}")
             return []
-
+    
     def _parse_ping_output(self, output):
         """Parse the output of the ping command to extract the average time."""
         try:
@@ -829,7 +837,14 @@ class ApplicationGUI:
                 self.tree.column(col, anchor="center")
             self.tree.heading("Key", text="Key")
             self.tree.column("Key", width=0, stretch=tk.NO, minwidth=0)
-            self.master.iconbitmap('media/NetMon.ico') 
+            
+            # Check the operating system
+            if os.name == 'nt':  # If the OS is Windows
+                self.master.iconbitmap('media/NetMon.ico')
+            else:  # For other OSs, you can use a .png or .gif file
+                icon = tk.PhotoImage(file='media/NetMon.png')
+                self.master.iconphoto(False, icon)
+            
             self.tree.grid(sticky='nsew', padx=10, pady=10)
             self.master.grid_rowconfigure(0, weight=1)
         
@@ -840,6 +855,8 @@ class ApplicationGUI:
             self.timer_label.grid(sticky='ew', padx=10, pady=10)
             self.master.grid_rowconfigure(1, weight=0)
             self.master.grid_columnconfigure(0, weight=1)
+        except Exception as e:
+            print(f"Error creating widgets: {e}")
             
         except Exception as e:
             self.logger.log_error("Failed to create widgets: " + str(e))
@@ -1123,12 +1140,18 @@ class Application(tk.Frame):
                         
                         # Play sound if device goes offline and acknowledge field is not True
                         if status.startswith('Offline') and device[6] != '✔':
-                            for _ in range(3):
-                                winsound.PlaySound('media/alert.wav', winsound.SND_FILENAME)
-                        
+                            def play_sound():
+                                pygame.mixer.init()
+                                sound = pygame.mixer.Sound(os.path.join('media', 'alert.wav'))  # Create a Sound object
+                                for _ in range(3):
+                                    sound.play()  # Play the sound using the Sound object
+                                    pygame.time.wait(int(sound.get_length() * 1000))  # Get the length of the sound using the Sound object
+
+                            threading.Thread(target=play_sound).start()
+
                         # Update status in CSV
                         data = []
-                        with open('config/equipment.csv', 'r') as file:
+                        with open(os.path.join('config', 'equipment.csv'), 'r') as file:
                             reader = csv.reader(file)
                             for row in reader:
                                 if len(row) < 7:
@@ -1142,7 +1165,7 @@ class Application(tk.Frame):
                                         row[6] = 'False'
                                         self.logger.log_info(f"Device with IP {ip} status reset to 'Online' and Acknowledge set to 'False'")
                                 data.append(row)
-                        with open('config/equipment.csv', 'w', newline='') as file:
+                        with open(os.path.join('config', 'equipment.csv'), 'w', newline='') as file:
                             writer = csv.writer(file)
                             writer.writerows(data)
                         
