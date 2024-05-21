@@ -7,7 +7,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import ttk, simpledialog, Label, Entry, messagebox, scrolledtext
 from logging.handlers import RotatingFileHandler
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from shutil import move
 
