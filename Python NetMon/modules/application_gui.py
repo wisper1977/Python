@@ -18,7 +18,7 @@ class ApplicationGUI:
         self.app = app  # Reference to the main application class to access business logic
         self.log_viewer = LogViewerGUI(master, app)  # Initialize the log viewer window
         self.device_manager = DeviceManager()
-        self.version = "1.1.4"
+        self.version = "1.1.3.1"
         self.hyperlink = "https://tinyurl.com/PyNetMon"
         self.developer = "Chris Collins"
         try:
