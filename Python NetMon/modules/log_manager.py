@@ -1,37 +1,39 @@
+# Version: 1.1.3.1
 # Description: This module contains the LogManager class which is a singleton class that provides logging functionality for the application.
 
 from pathlib import Path
 import logging
 from logging.handlers import RotatingFileHandler
+from modules.config_manager import ConfigManager
 
 class LogManager:
     _instance = None
 
     @classmethod
-    def get_instance(cls):
-        """Get the singleton instance of the LogManager class."""
+    def get_instance(cls, config_manager=None):
+        """Get the singleton instance of LogManager."""
         if cls._instance is None:
-            cls._instance = cls()
+            cls._instance = cls(config_manager)
         return cls._instance
 
-    def __init__(self):
-        """Initialize the LogManager instance with a rotating file handler."""
+    def __init__(self, config_manager):
+        """Initialize the LogManager class."""
+        self.config_manager = config_manager
         try:
-            if LogManager._instance is not None:
-                raise Exception("This class is a singleton!")
-            else:
-                LogManager._instance = self
             self.setup_logging()
         except Exception as e:
-            logging.error(f"Error initializing LogManager: {e}")
+            logging.error(f"Error setting up logging: {e}")
             raise e
 
     def setup_logging(self):
         """Setup logging configuration for the application."""
         try:
-            log_directory = Path('log')
+            log_directory = Path(self.config_manager.get_setting('Logging', 'log_directory', 'log'))
             log_directory.mkdir(exist_ok=True)
-            log_file_path = log_directory / 'log_file.txt'
+            log_file = self.config_manager.get_setting('Logging', 'log_file', 'log_file.txt')
+            log_file_path = log_directory / log_file
+            archive_directory = Path(self.config_manager.get_setting('Logging', 'archive_directory', 'log/archive'))
+            archive_directory.mkdir(parents=True, exist_ok=True)
             logging.basicConfig(
                 level=logging.DEBUG,
                 format='%(asctime)s - %(levelname)s - %(message)s',

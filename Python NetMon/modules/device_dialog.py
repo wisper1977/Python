@@ -1,3 +1,4 @@
+# Version: 1.1.3.1
 # Description: Module to create a dialog window for adding or editing device details.
 
 import tkinter as tk

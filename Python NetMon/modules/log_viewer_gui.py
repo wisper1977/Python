@@ -1,4 +1,5 @@
-# This module contains the LogViewerGUI class which is responsible for displaying logs in a new window.
+# Version: 1.1.3.1
+# Description: Module to write logs to a log file.
 
 import tkinter as tk
 from tkinter import messagebox
@@ -8,15 +9,19 @@ from pathlib import Path
 from modules.log_manager import LogManager
 from modules.log_reader import LogReader
 from modules.log_writer import LogWriter
+from modules.config_manager import ConfigManager
 
 class LogViewerGUI:
     def __init__(self, master, app):
         self.logger = LogManager.get_instance() # Get the singleton instance of LogManager
         self.master = master # Reference to the main application window
         self.app = app # Reference to the main application class to access business logic
-        self.log_file_path = Path('log') / 'log_file.txt'
-        self.log_reader = LogReader(self.log_file_path)
-        self.log_writer = LogWriter(self.log_file_path)
+        self.config = ConfigManager()  # Create an instance of ConfigManager
+        log_directory = self.config.get_setting('Log', 'log_directory')  # Get the log directory from the config.ini file
+        logfile = self.config.get_setting('Log', 'logfile')  # Get the logfile from the config.ini file
+        self.log_file_path = Path(log_directory, logfile)  # Construct the log file path
+        self.log_reader = LogReader()
+        self.log_writer = LogWriter()
         self.last_archive_time = datetime.now()  # Initialize the last archive time
      
     def update_log_display(self):

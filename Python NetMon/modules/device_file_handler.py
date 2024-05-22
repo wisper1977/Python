@@ -1,3 +1,4 @@
+# Version: 1.1.3.1
 # Description: Module to handle device file operations.
 
 import csv

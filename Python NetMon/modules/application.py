@@ -1,15 +1,17 @@
-# This module contains the Application class which is the main class for the application.
+# Version: 1.1.3.1
+# Description: Module to manage the main application window and setup the GUI.
 
-import csv, os, threading, pygame
+import csv, os, threading, pygame, logging
 import tkinter as tk
-from modules.config_manager import ConfigManager
 from modules.device_manager import DeviceManager
-from modules.network_operations import NetworkOperations
 from modules.application_gui import ApplicationGUI
 from modules.log_manager import LogManager
+from modules.network_operations import NetworkOperations
+from pathlib import Path
+from logging.handlers import RotatingFileHandler
 
 class Application(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, config_manager=None, log_manager=None):
         """Initialize the main application with the root window and setup the GUI."""
         try:
             super().__init__(master)
@@ -17,11 +19,12 @@ class Application(tk.Frame):
             self.master.title("Python NetMon")
             self.master.state('zoomed')
             
+            self.config_manager = config_manager
+            self.logger = log_manager
             self.setup_logging()
-            self.config_manager = ConfigManager()
             self.device_manager = DeviceManager(filepath='config/equipment.csv')
             self.gui = ApplicationGUI(master, self)
-            self.network_ops = self.setup_network_operations()
+            self.network_ops = NetworkOperations(config=self.config_manager, update_callback=self.update_callback)
 
             self.gui.load_devices()
             self.gui.initiate_refresh_cycle()
@@ -32,19 +35,30 @@ class Application(tk.Frame):
     def setup_logging(self):
         """Setup logging configuration for the application."""
         try:
-            self.logger = LogManager.get_instance()
-            self.logger.log_debug("Application initializing...")
+            log_directory = Path(self.config_manager.get_setting('Logging', 'log_directory', 'log'))
+            log_directory.mkdir(exist_ok=True)
+            log_file = self.config_manager.get_setting('Logging', 'log_file', 'log_file.txt')
+            log_file_path = log_directory / log_file
+            archive_directory = Path(self.config_manager.get_setting('Logging', 'archive_directory', 'log/archive'))
+            archive_directory.mkdir(parents=True, exist_ok=True)
+            logging.basicConfig(
+                level=logging.DEBUG,
+                format='%(asctime)s - %(levelname)s - %(message)s',
+                handlers=[
+                    RotatingFileHandler(log_file_path, maxBytes=10*1024*1024, backupCount=5),
+                    logging.StreamHandler()
+                ]
+            )
         except Exception as e:
-            self.logger.log_error("Failed to setup logging: " + str(e))
+            self.log_manager.log_error(f"Error setting up logging: {e}")
             raise e
 
-    def setup_network_operations(self):
-        """Setup the NetworkOperations class with a callback to update the device status in the GUI."""
+    def update_callback(self, ip, message):
+        """Callback method for network operations updates."""
         try:
-            update_callback = self.update_device_status  # Delegate to GUI
-            return NetworkOperations(self.config_manager, update_callback)
-        except Exception as e: 
-            self.logger.log_error("Failed to setup NetworkOperations: " + str(e))
+            self.update_device_status(ip, message)
+        except Exception as e:
+            self.logger.log_error("Failed to update device status: " + str(e))
             raise e
 
     def setup_gui(self):
@@ -70,7 +84,6 @@ class Application(tk.Frame):
                         LogManager.get_instance().log_error("Device list was too short, added missing acknowledgement field: " + str(device))
                     if device[3] == ip:
                         color = 'red' if status.startswith('Offline') else 'white'
-                       
                         # Reset the acknowledgement to 'False' if the status starts with 'Online' and the acknowledgement is 'True'
                         if status.startswith('Online') and device[6] == 'True':
                             device[6] = 'False'

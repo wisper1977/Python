@@ -1,3 +1,4 @@
+# Version: 1.1.3.1
 # Description: Module for performing network operations such as pinging devices.
 
 import os, re, subprocess

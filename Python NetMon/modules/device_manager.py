@@ -1,3 +1,4 @@
+# Version: 1.1.3.1
 # Description: Module to manage devices and their details.
 
 import csv

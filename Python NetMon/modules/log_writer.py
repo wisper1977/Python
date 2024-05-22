@@ -1,18 +1,24 @@
-# This module contains the LogWriter class which is responsible for writing logs to a file and clearing the logs.
+# Version: 1.1.3.1
+# Description: Module to write to the log file and clear the log file.
 
 import time, logging
 import tkinter as tk
 from tkinter import messagebox
 from pathlib import Path
 from shutil import move
-from modules.log_manager import LogManager
 from datetime import datetime
+from modules.log_manager import LogManager
+from modules.config_manager import ConfigManager
+
 
 class LogWriter:
-    def __init__(self, log_file_path):
+    def __init__(self):
         """Initialize the LogWriter with a path to the log file."""
         self.logger = LogManager.get_instance()
-        self.log_file_path = Path(log_file_path)
+        self.config = ConfigManager()  # Create an instance of ConfigManager
+        log_directory = self.config.get_setting('Log', 'log_directory')  # Get the log directory from the config.ini file
+        logfile = self.config.get_setting('Log', 'logfile')  # Get the logfile from the config.ini file
+        self.log_file_path = Path(log_directory, logfile)  # Construct the log file path
         self.archive_directory = Path('log') / 'archive'
 
     def clear_logs(self, log_text_widget):

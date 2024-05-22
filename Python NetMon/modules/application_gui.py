@@ -1,26 +1,34 @@
-# Description: This module contains the ApplicationGUI class that creates the main GUI for the application.
+# Version: 1.1.3.1
+# Description: Python module to create the GUI for the network monitoring application.
 
-import os
+import os, webbrowser, configparser
 import tkinter as tk
 from tkinter import ttk, messagebox
-import webbrowser
 from modules.device_manager import DeviceManager
 from modules.log_manager import LogManager
 from modules.log_viewer_gui import LogViewerGUI
 from modules.device_dialog import DeviceDialog
-from modules.ping_settings_dialog import PingSettingsDialog
+from modules.settings_manager import SettingsManager
 
 class ApplicationGUI:
     def __init__(self, master, app):
         """Initialize the GUI with a reference to the main application and device manager."""
-        self.logger = LogManager.get_instance()
-        self.master = master
+        self.logger = LogManager.get_instance() # Get the singleton instance of LogManager
+        self.master = master # Reference to the main application window
         self.app = app  # Reference to the main application class to access business logic
         self.log_viewer = LogViewerGUI(master, app)  # Initialize the log viewer window
-        self.device_manager = DeviceManager()
-        self.version = "1.1.3.1"
-        self.hyperlink = "https://tinyurl.com/PyNetMon"
-        self.developer = "Chris Collins"
+        self.device_manager = DeviceManager() # Create an instance of DeviceManager
+        self.config_manager = self.app.config_manager # Reference to the ConfigManager instance
+        self.version = self.config_manager.get_setting('DEFAULT', 'version') # Get the version from the config.ini file
+        self.hyperlink = self.config_manager.get_setting('DEFAULT', 'hyperlink', 'https://tinyurl.com/PyNetMon') # Get the hyperlink from the config.ini file
+        self.developer = self.config_manager.get_setting('DEFAULT', 'developer') # Get the developer name from the config.ini file
+        self.refresh_interval = self.config_manager.get_setting('DEFAULT', 'refreshinterval', '60')  # Get the refreshinterval from the config.ini file
+
+        if self.version is None or self.hyperlink is None or self.developer is None:
+            messagebox.showerror("Configuration Error", "Some settings are missing in the config.ini file.")
+            self.logger.log_error("Some settings are missing in the config.ini file.")
+            raise Exception("Some settings are missing in the config.ini file.")
+        
         try:
             self.create_menu()
             self.create_widgets()
@@ -102,9 +110,7 @@ class ApplicationGUI:
             self.timer_label.grid(sticky='ew', padx=10, pady=10)
             self.master.grid_rowconfigure(1, weight=0)
             self.master.grid_columnconfigure(0, weight=1)
-        except Exception as e:
-            print(f"Error creating widgets: {e}")
-            
+          
         except Exception as e:
             self.logger.log_error("Failed to create widgets: " + str(e))
             raise e
@@ -216,7 +222,7 @@ class ApplicationGUI:
     def update_refresh_interval(self):
         """Update the refresh interval based on the number of ping attempts."""
         try:
-            interval = int(self.config_manager.get_setting('DEFAULT', 'refreshinterval', '30'))
+            interval = int(self.refresh_interval)  # Use the refresh_interval attribute
             self.after(interval * 1000, self.refresh_network_status)
         except Exception as e:
             self.logger.log_error("Failed to update refresh interval: " + str(e))
@@ -225,15 +231,22 @@ class ApplicationGUI:
     def refresh_network_status(self):
         """Refresh the network status of all devices periodically."""
         try:
+            interval = int(self.refresh_interval)  # Use the refresh_interval attribute
             ping_attempts = int(self.app.config_manager.get_setting('PING', 'attempts', '5'))
-            if ping_attempts <= 5:
-                interval = 60  # Refresh every 60 seconds if attempts are 5 or fewer
-            elif 6 <= ping_attempts <= 10:
-                interval = 90  # Refresh every 90 seconds if attempts are between 6 and 10
-            else:
-                interval = 90  # Cap at 90 seconds for more than 10 attempts
-                ping_attempts = 10  # Cap the number of attempts at 10
-                self.config_manager.save_settings('PING', 'attempts', '10')  # Save capped value
+
+            if interval < 60:
+                max_attempts = 3  # Allow up to 3 attempts
+            elif interval == 60:
+                max_attempts = 5  # Allow up to 5 attempts
+            elif interval == 90:
+                max_attempts = 8  # Allow up to 8 attempts
+            elif interval >= 120:
+                max_attempts = 10  # Allow up to 10 attempts
+
+            if ping_attempts > max_attempts:
+                messagebox.showerror("Error", f"Maximum allowed ping attempts for refresh interval {interval} is {max_attempts}")
+                ping_attempts = max_attempts  # Cap the number of attempts
+                self.config_manager.save_settings('PING', 'attempts', str(ping_attempts))  # Save the capped value
 
             self.update_device_statuses()
             self.countdown = interval
@@ -283,7 +296,7 @@ class ApplicationGUI:
     def open_settings(self):
         """Open the settings dialog to configure the refresh interval and ping settings."""
         try:
-            dialog = PingSettingsDialog(self.master, self.app.config_manager)
+            dialog = SettingsManager(self.master, self.app.config_manager)
             if dialog.result:
                 self.refresh_network_status()  # Immediately refresh to apply new settings
         except Exception as e:
