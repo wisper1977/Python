@@ -58,7 +58,7 @@ class LogWriter:
                     logging.shutdown()
 
                     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    archive_file_path = self.log_file_path.parent / f'log_file_{timestamp}.txt'
+                    archive_file_path = self.archive_directory / f'log_file_{timestamp}.txt'
                     move(self.log_file_path, archive_file_path)
 
                     # Use the logger from LogManager
