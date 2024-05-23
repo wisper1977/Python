@@ -1,4 +1,4 @@
-# Python NetMon - 1.1.3
+# Python NetMon - 1.1.3.1
 
 Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive network monitoring tool built with Python and Tkinter. It allows users to manage network devices, monitor their status, and view detailed ping statistics in real-time.
 
@@ -153,6 +153,13 @@ When the application detects a device status change, an alert sound will play to
 These features ensure that you can effectively monitor and manage the application's log data, keeping track of important events and maintaining system performance.
 
 ## Version History
+
+### v1.1.3.1 - Minor Enhancements
+**Release Date:** Dev
+
+- Bug Fixes: Fixed minor bugs in the user interface and improved the responsiveness.
+- Restructure of file system to a module based system.
+- Cleanup of code for easier understanding of functionality.
 
 ### v1.1.3 - Minor Enhancements
 **Release Date:** May 20, 2024
