@@ -1,7 +1,7 @@
 # Version: 1.1.3.1
 # Description: Python module to create the GUI for the network monitoring application.
 
-import os, webbrowser, configparser
+import os, webbrowser, pygame, threading
 import tkinter as tk
 from tkinter import ttk, messagebox
 from modules.device_manager import DeviceManager
@@ -19,16 +19,16 @@ class ApplicationGUI:
         self.log_viewer = LogViewerGUI(master, app)  # Initialize the log viewer window
         self.device_manager = DeviceManager() # Create an instance of DeviceManager
         self.config_manager = self.app.config_manager # Reference to the ConfigManager instance
+        self.config_manager.load_config()
         self.version = self.config_manager.get_setting('DEFAULT', 'version') # Get the version from the config.ini file
         self.hyperlink = self.config_manager.get_setting('DEFAULT', 'hyperlink', 'https://tinyurl.com/PyNetMon') # Get the hyperlink from the config.ini file
         self.developer = self.config_manager.get_setting('DEFAULT', 'developer') # Get the developer name from the config.ini file
-        self.refresh_interval = self.config_manager.get_setting('DEFAULT', 'refreshinterval', '60')  # Get the refreshinterval from the config.ini file
-
+        self.refresh_interval = int(self.config_manager.get_setting('Network', 'refreshinterval','60'))  # Get the refreshinterval from the config.ini file
+        
         if self.version is None or self.hyperlink is None or self.developer is None:
             messagebox.showerror("Configuration Error", "Some settings are missing in the config.ini file.")
             self.logger.log_error("Some settings are missing in the config.ini file.")
             raise Exception("Some settings are missing in the config.ini file.")
-        
         try:
             self.create_menu()
             self.create_widgets()
@@ -53,9 +53,9 @@ class ApplicationGUI:
             file_menu.add_command(label="Exit", accelerator="Ctrl+Q", command=self.quit_app)
             
             # Adding 'Add Device', 'Edit Device', and 'Delete Device' under 'Edit'
-            edit_menu.add_command(label="Add Device", accelerator="Ctrl+A", command=self.add_device)
-            edit_menu.add_command(label="Edit Device", accelerator="Ctrl+E", command=self.edit_device)
-            edit_menu.add_command(label="Delete Device", accelerator="Ctrl+D", command=self.delete_device)
+            edit_menu.add_command(label="Add Device", accelerator="Ctrl+A", command=self.add_device_call)
+            edit_menu.add_command(label="Edit Device", accelerator="Ctrl+E", command=self.edit_device_call)
+            edit_menu.add_command(label="Delete Device", accelerator="Ctrl+D", command=self.delete_device_call)
             
             # Adding 'Log' under 'View'
             view_menu.add_command(label="View Log", command=self.log_viewer.open_log_viewer)
@@ -67,9 +67,9 @@ class ApplicationGUI:
             # Binding keyboard shortcuts to menu items
             self.master.bind("<Control-s>", lambda event: self.open_settings())
             self.master.bind("<Control-q>", lambda event: self.quit_app())
-            self.master.bind("<Control-a>", lambda event: self.add_device())
-            self.master.bind("<Control-e>", lambda event: self.edit_device())
-            self.master.bind("<Control-d>", lambda event: self.delete_device())
+            self.master.bind("<Control-a>", lambda event: self.add_device_call())
+            self.master.bind("<Control-e>", lambda event: self.edit_device_call())
+            self.master.bind("<Control-d>", lambda event: self.delete_device_call())
             self.master.bind("<Control-h>", lambda event: self.open_online_help())
             self.master.bind("<Control-i>", lambda event: self.show_about())
 
@@ -134,21 +134,19 @@ class ApplicationGUI:
             self.logger.log_error("Failed to handle double click event: " + str(e))
             raise e
 
-    def add_device(self):
+    def add_device_call(self):
         """Open a dialog to add a new device and save it to the device file."""
         try:
             dialog = DeviceDialog(self.master)
             if dialog.result:
                 new_device = dialog.result
-                new_key = self.device_manager.generate_new_key()
-                new_device['Key'] = str(new_key)
-                self.device_manager.save_device(new_device)
+                self.device_manager.add_device(new_device)
                 self.load_devices()
         except Exception as e:
             self.logger.log_error("Failed to add device: " + str(e))
             raise e
 
-    def edit_device(self):
+    def edit_device_call(self):
         """Open a dialog to edit an existing device and save the changes to the device file."""
         try:
             selected_item = self.tree.selection()
@@ -165,19 +163,13 @@ class ApplicationGUI:
                     }
                     dialog = DeviceDialog(self.master, existing_details=existing_details)
                     if dialog.result:
-                        # If the IP has changed, update the device with the new details
-                        if dialog.result['IP'] != existing_details['IP']:
-                            self.device_manager.update_device(dialog.result['Key'], dialog.result)
-                        else:
-                            # If the IP has not changed, update the device without changing the status
-                            dialog.result['Status'] = existing_details['Status']
-                            self.device_manager.update_device(dialog.result['Key'], dialog.result)
+                        self.device_manager.edit_device(dialog.result['Key'], dialog.result)
                         self.load_devices()
         except Exception as e:
             self.logger.log_error("Failed to edit device: " + str(e))
             raise e
 
-    def delete_device(self):
+    def delete_device_call(self):
         """Delete the selected device from the device file."""
         try:
             selected_item = self.tree.selection()
@@ -187,7 +179,7 @@ class ApplicationGUI:
                 response = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete the device with Key: {device_key}?")
                 if response:
                     self.device_manager.delete_device(device_key)
-                    self.load_devices()
+                    self.load_devices()  # Refresh the GUI after deleting
         except Exception as e:
             self.logger.log_error("Failed to delete device: " + str(e))
             raise e
@@ -200,7 +192,7 @@ class ApplicationGUI:
                 self.tree.delete(i)
 
             # Load devices from the device file
-            devices = self.device_manager.load_devices()
+            devices = self.device_manager.load_devices_from_file()
 
             # Populate the TreeView with devices
             for device in devices:
@@ -259,7 +251,7 @@ class ApplicationGUI:
     def update_device_statuses(self):
         """Update the status of each device by sending ping requests."""
         try:
-            devices = self.device_manager.load_devices()
+            devices = self.device_manager.load_devices_from_file()
             for device in devices:
                 self.app.network_ops.ping_device(device['IP'])
         except Exception as e:
@@ -318,6 +310,33 @@ class ApplicationGUI:
         except Exception as e:
             self.logger.log_error("Failed to show about dialog: " + str(e))
             raise e
+       
+    def play_alert_sound(self, status, device):
+        if status.startswith('Offline') and device[6] != '✔':
+            def play_sound():
+                pygame.mixer.init()
+                sound = pygame.mixer.Sound(os.path.join('media', 'alert.wav'))  # Create a Sound object
+                for _ in range(3):
+                    sound.play()  # Play the sound using the Sound object
+                    pygame.time.wait(int(sound.get_length() * 1000))  # Get the length of the sound using the Sound object
+
+            threading.Thread(target=play_sound).start()
+
+    def update_gui(self, ip, status):
+        for item in self.tree.get_children():
+            device = self.tree.item(item)['values']
+            if device[3] == ip:
+                device[6] = '' if status.startswith('Online') else device[6]
+                self.tree.item(item, values=device)
+
+    def update_tree_view(self, ip, status, device, item):
+        color = 'red' if status.startswith('Offline') else 'white'
+        if status.startswith('Online') and device[6] == 'True':
+            device[6] = 'False'
+        self.tree.item(item, values=(device[0], device[1], device[2], device[3], device[4], status, device[6]), tags=(color,))
+        self.tree.tag_configure(color, background=color)
+        self.sort_devices()  
+        self.master.update_idletasks()  # Update the GUI immediately
 
     def quit_app(self):
         """Quit the application and perform cleanup operations."""

@@ -12,12 +12,12 @@ class DeviceManager:
             self.filepath = filepath  # store filepath as an instance variable
             self.file_handler = DeviceFileHandler(filepath)
             self.logger = LogManager.get_instance()
-            self.devices = self.load_devices()
+            self.devices = self.load_devices_from_file()
         except Exception as e:
             self.logger.log_error(f"Failed to initialize DeviceManager: {e}")
             raise e
 
-    def load_devices(self):
+    def load_devices_from_file(self):
         """Load the devices from the device file."""
         try:
             return self.file_handler.read_devices()
@@ -28,7 +28,7 @@ class DeviceManager:
     def save_device(self, device):
         """Save a new device to the device file."""
         try:
-            devices = self.load_devices()
+            devices = self.load_devices_from_file()
             # Ensure uniqueness of keys
             new_key = self.generate_new_key(devices)
             device['Key'] = str(new_key)
@@ -40,7 +40,7 @@ class DeviceManager:
     def delete_device(self, device_key):
         """Delete a device with the given key from the device file."""
         try:
-            devices = self.load_devices()
+            devices = self.load_devices_from_file()
             original_count = len(devices)
             devices = [device for device in devices if device['Key'] != str(device_key)]
             if len(devices) == original_count:
@@ -48,13 +48,48 @@ class DeviceManager:
             else:
                 self.logger.log_info(f"Device with Key: {device_key} deleted.")
                 self.file_handler.write_devices(devices)
+                self.load_devices_from_file()  # Reload devices after deleting
         except Exception as e:
             self.logger.log_error(f"Failed to delete device: {e}")
+            raise e
+
+    def add_device(self, new_device):
+        """Add a new device and save it to the device file."""
+        try:
+            new_key = self.generate_new_key()
+            new_device['Key'] = str(new_key)
+            self.save_device(new_device)
+            self.load_devices_from_file()  # Reload devices after adding
+        except Exception as e:
+            self.logger.log_error(f"Failed to add device: {e}")
+            raise e
+    
+    def edit_device(self, device_key, new_details):
+        """Edit an existing device and save the changes to the device file."""
+        try:
+            devices = self.load_devices_from_file()
+            for device in devices:
+                if device['Key'] == device_key:
+                    # If the IP has changed, update the device with the new details
+                    if new_details['IP'] != device['IP']:
+                        device.update(new_details)
+                    else:
+                        # If the IP has not changed, update the device without changing the status
+                        new_details['Status'] = device['Status']
+                        device.update(new_details)
+                    self.file_handler.write_devices(devices)
+                    self.lload_devices_from_file()  # Reload devices after editing
+                    break
+            else:
+                self.logger.log_warning(f"No device found with Key: {device_key} to edit.")
+        except Exception as e:
+            self.logger.log_error(f"Failed to edit device: {e}")
+            raise e
 
     def update_device(self, device_key, new_details):
         """Update the details of a device with the given key."""
         try:
-            devices = self.load_devices()
+            devices = self.load_devices_from_file()
             for device in devices:
                 if device['Key'] == str(device_key):
                     device.update(new_details)

@@ -1,7 +1,7 @@
 # Version: 1.1.3.1
 # Description: Module to handle device file operations.
 
-import csv
+import csv, os
 from pathlib import Path
 from modules.log_manager import LogManager
 
@@ -69,4 +69,23 @@ class DeviceFileHandler:
             self.logger.log_debug("Device file updated successfully.")
         except IOError as e:
             self.logger.log_error(f"Failed to write to device file: {e}")
-            raise 
+            raise
+
+    def update_csv(self, ip, status):
+        data = []
+        with open(os.path.join('config', 'equipment.csv'), 'r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if len(row) < 7:
+                    row.append('False')
+                    LogManager.get_instance().log_error("Row list was too short, added missing acknowledgement field: " + str(row))
+                if row[3] == ip:
+                    row[5] = status
+                    if status.startswith('Online') and row[6] == 'False':
+                        self.logger.log_info(f"Device with IP {ip} status reset to 'Online'")
+                    elif status.startswith('Offline') and row[6] == 'True':
+                        self.logger.log_info(f"Device with IP {ip} status set to 'Offline' and Acknowledge set to 'True'")
+                data.append(row)
+        with open(os.path.join('config', 'equipment.csv'), 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(data)

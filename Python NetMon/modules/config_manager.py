@@ -40,11 +40,6 @@ class ConfigManager:
             if self.logger is not None:
                 self.logger.log_critical(f"Unexpected error during configuration initialization: {e}")
             raise e
-
-    def get_config(self):
-        """Get the configuration."""
-        # TODO: Implement the logic to get the configuration
-        return self.config
     
     def set_logger(self, logger):
         """Set the logger for this ConfigManager."""
@@ -122,15 +117,12 @@ class ConfigManager:
             self.logger.log_critical(f"Unexpected error while saving settings: {e}")
 
     def get_setting(self, section, option, fallback=None):
-        """Get a setting from the configuration file with optional fallback value."""
         try:
-            return self.config.get(section, option, fallback=fallback)
-        except configparser.NoOptionError:
-            self.logger.log_error(f"No option '{option}' in section '{section}'")
-            return fallback
-        except configparser.NoSectionError:
-            self.logger.log_error(f"No section '{section}' found")
-            return fallback
-        except Exception as e:
-            self.logger.log_error(f"Error retrieving setting: {e}")
+            value = self.config.get(section, option)
+            if self.logger is not None:
+                self.logger.log_info(f"Getting setting: section={section}, option={option}, value={value}")
+            return value
+        except (configparser.NoSectionError, configparser.NoOptionError, configparser.Error):
+            if self.logger is not None:
+                self.logger.log_error(f"No section '{section}' found")
             return fallback

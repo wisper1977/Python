@@ -13,11 +13,15 @@ class LogManager:
     def get_instance(cls, config_manager=None):
         """Get the singleton instance of LogManager."""
         if cls._instance is None:
+            if config_manager is None:
+                raise ValueError("config_manager cannot be None when creating the first LogManager instance")
             cls._instance = cls(config_manager)
         return cls._instance
 
     def __init__(self, config_manager):
         """Initialize the LogManager class."""
+        if config_manager is None:
+            raise ValueError("config_manager cannot be None")
         self.config_manager = config_manager
         try:
             self.setup_logging()
