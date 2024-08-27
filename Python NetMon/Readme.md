@@ -179,7 +179,7 @@ The Log Viewer is a feature that allows you to view, filter, archive, and clear 
 ## Version History
 
 ### v1.1.3.1 - Syslog Server
-**Release Date:** Dev
+**Release Date:** August 28, 2024
 
 - Bug Fixes: Fixed minor bugs in the user interface and improved the responsiveness.
 - Restructure of file system to a module based system.
