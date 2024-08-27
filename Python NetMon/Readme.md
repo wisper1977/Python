@@ -33,7 +33,7 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
 - **User Interface**: Simple and clean GUI for easy operation.
 - **Logging**: Detailed logging of application activities and errors.
 - **Keyboard Shortcuts**: Quick access to common actions using keyboard shortcuts.
-- **Syslog Server**; Integrated Syslog Server and Syslog Viewer.
+- **Syslog Server**: Integrated Syslog Server and Syslog Viewer.
 
 ## Requirements
 
