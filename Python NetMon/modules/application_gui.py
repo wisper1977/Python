@@ -9,6 +9,8 @@ from modules.log_manager import LogManager
 from modules.log_viewer_gui import LogViewerGUI
 from modules.device_dialog import DeviceDialog
 from modules.settings_manager import SettingsManager
+from modules.syslog_gui import SyslogGUI
+
 
 class ApplicationGUI:
     def __init__(self, master, app):
@@ -58,7 +60,8 @@ class ApplicationGUI:
             edit_menu.add_command(label="Delete Device", accelerator="Ctrl+D", command=self.delete_device_call)
             
             # Adding 'Log' under 'View'
-            view_menu.add_command(label="View Log", command=self.log_viewer.open_log_viewer)
+            view_menu.add_command(label="Log Viewer", command=self.log_viewer.open_log_viewer)
+            view_menu.add_command(label="SysLog Viewer", command=self.open_syslog_viewer)
         
             # Adding 'Online Help' and 'About' under 'Help'
             help_menu.add_command(label="Online Help", accelerator="Ctrl+H", command=self.open_online_help)
@@ -133,7 +136,16 @@ class ApplicationGUI:
         except Exception as e:
             self.logger.log_error("Failed to handle double click event: " + str(e))
             raise e
-
+        
+    def open_syslog_viewer(self):
+        """Open the SYSLOG viewer GUI."""
+        try:
+            syslog_gui = SyslogGUI(self.master, self.app)  # Assuming SYSLOG_Gui takes the master and app as arguments
+            syslog_gui.show()  # Assuming SYSLOG_Gui has a show method to display the GUI
+        except Exception as e:
+            self.logger.log_error("Failed to open SYSLOG viewer: " + str(e))
+            raise e
+    
     def add_device_call(self):
         """Open a dialog to add a new device and save it to the device file."""
         try:

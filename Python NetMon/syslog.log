@@ -1,0 +1,5 @@
+2024-08-27 11:34:57,931 - INFO - 10.1.0.61 - <186>418: 1d00h: %SYS-2-LOGMSG: Message from 1(ccollins): 6 Test message to Syslog server
+2024-08-27 11:40:58,729 - INFO - 10.1.0.61 - <186>421: 1d00h: %SYS-2-LOGMSG: Message from 1(ccollins): 6 Test message to Syslog server
+2024-08-27 11:55:15,915 - INFO - 10.1.0.61 - <189>422: 1d00h: %LINK-5-CHANGED: Interface GigabitEthernet0/25, changed state to administratively down
+2024-08-27 11:55:21,371 - INFO - 10.1.0.61 - <187>423: 1d00h: %LINK-3-UPDOWN: Interface GigabitEthernet0/25, changed state to down
+2024-08-27 11:55:35,006 - INFO - 10.1.0.61 - <189>424: 1d00h: %SYS-5-CONFIG_I: Configured from console by ccollins on vty0 (10.4.1.47)
