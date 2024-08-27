@@ -19,6 +19,8 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
   - [Archiving Logs](#archiving-logs)
   - [Clearing Logs](#clearing-logs)
   - [Acknowledging Alerts](#acknowledging-alerts)
+- [Syslog Viewer](#syslog-viewer)
+  - [Viewing Syslogs](#viewing-syslogs)
 - [Version History](#version-history)
 - [Future Plans](#future-plans)
 - [Contributing](#contributing)
