@@ -49,7 +49,19 @@ Welcome to the Python NetMon repository! Python NetMon is a simple, intuitive ne
    ```bash
    cd Python\ NetMon\
 
-No additional installation required if you have Python installed.
+3. Create a firewall rule for the Syslog server 
+
+   Windows PowerShell
+      ```bash
+      New-NetFirewallRule -DisplayName "Allow Syslog Server" -Direction Inbound -Protocol UDP -LocalPort 514 -Action Allow
+
+  Linux unsing ipTables
+      ```bash
+      sudo iptables -A INPUT -p udp --dport 514 -j ACCEPT
+      sudo iptables-save | sudo tee /etc/sysconfig/iptables
+      sudo systemctl restart iptables
+    
+  No additional installation required if you have Python installed.
 
 ## Usage
 To run the application, navigate to the directory containing the script and run:
@@ -154,12 +166,13 @@ These features ensure that you can effectively monitor and manage the applicatio
 
 ## Version History
 
-### v1.1.3.1 - Minor Enhancements
+### v1.1.3.1 - Syslog Server
 **Release Date:** Dev
 
 - Bug Fixes: Fixed minor bugs in the user interface and improved the responsiveness.
 - Restructure of file system to a module based system.
 - Cleanup of code for easier understanding of functionality.
+- Added a Syslog Server and a GUI to read Syslogs.
 
 ### v1.1.3 - Minor Enhancements
 **Release Date:** May 20, 2024
