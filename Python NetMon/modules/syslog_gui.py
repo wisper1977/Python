@@ -11,7 +11,7 @@ class SyslogGUI:
         
         self.window = tk.Toplevel(self.master)
         self.window.title("Syslog Viewer")
-        self.window.geometry("800x600")
+        self.window.geometry("1500x600")
         self.window.protocol("WM_DELETE_WINDOW", self.close)
 
         self.create_widgets()
