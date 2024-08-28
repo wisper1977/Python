@@ -28,10 +28,14 @@ class SyslogGUI:
             self.severity_filter = ttk.Combobox(filter_frame, values=["ALL", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
             self.severity_filter.current(0)
             self.severity_filter.pack(side=tk.LEFT, padx=5)
+
+            tk.Label(filter_frame, text="Search Description:").pack(side=tk.LEFT)
+            self.description_search_entry = tk.Entry(filter_frame)
+            self.description_search_entry.pack(side=tk.LEFT, padx=5)
             
-            tk.Label(filter_frame, text="Search:").pack(side=tk.LEFT)
-            self.search_entry = tk.Entry(filter_frame)
-            self.search_entry.pack(side=tk.LEFT, padx=5)
+            tk.Label(filter_frame, text="Search Host:").pack(side=tk.LEFT)
+            self.host_search_entry = tk.Entry(filter_frame)
+            self.host_search_entry.pack(side=tk.LEFT, padx=5)
             
             tk.Button(filter_frame, text="Apply", command=self.apply_filter).pack(side=tk.LEFT, padx=5)
             tk.Button(filter_frame, text="Clear", command=self.clear_filter).pack(side=tk.LEFT, padx=5)
@@ -61,7 +65,7 @@ class SyslogGUI:
                 lines = file.readlines()
             
             for line in lines:
-                parts = line.strip().split(' - ', 3)  # Adjust split to match format
+                parts = line.strip().split(' - ', 3)  # Split by ' - ' for the 4 parts
                 if len(parts) == 4:
                     timestamp, severity, host, message = parts
                     self.tree.insert('', 'end', values=(timestamp, host, severity, message))
@@ -73,27 +77,46 @@ class SyslogGUI:
             messagebox.showerror("Error", "Failed to load syslog entries.")
 
     def apply_filter(self):
-        """Apply the filter based on severity and search query."""
+        """Apply the filter based on severity, description, and host search query."""
         try:
             severity = self.severity_filter.get()
-            search_query = self.search_entry.get().lower()
+            description_query = self.description_search_entry.get().lower()
+            host_query = self.host_search_entry.get().lower()
 
+            # Clear the existing entries in the Treeview
             for item in self.tree.get_children():
                 self.tree.delete(item)
             
-            # Reload syslog entries with filtering applied
+            # Open and read the syslog file
             with open('log/syslog.log', 'r') as file:
                 lines = file.readlines()
             
-            filtered_logs = [
-                line.strip().split(' - ', 3)  # Adjust split to match format
-                for line in lines
-                if (severity == "ALL" or line.split(' - ', 3)[2] == severity) and (search_query in line.split(' - ', 3)[3].lower())
-            ]
+            # Debug: Print out queries for verification
+            print(f"Filtering with Severity: {severity}, Description Query: {description_query}, Host Query: {host_query}")
             
+            # Process and filter log lines
+            filtered_logs = []
+            for line in lines:
+                parts = line.strip().split(' - ', 3)  # Split by ' - ' for the 4 parts
+                if len(parts) == 4:
+                    timestamp, severity_log, host, message = parts
+                    
+                    # Debug: Print each part to verify correct splitting
+                    print(f"Log Parts: Timestamp: {timestamp}, Host: {host}, Severity: {severity_log}, Message: {message}")
+
+                    # Apply filtering conditions
+                    if (severity == "ALL" or severity_log == severity) and \
+                    (description_query in message.lower()) and \
+                    (host_query in host.lower()):
+                        filtered_logs.append((timestamp, host, severity_log, message))
+
+            # Check if any logs were filtered
+            if not filtered_logs:
+                print("No logs matched the filter criteria.")
+
+            # Insert filtered logs into the Treeview
             for log in filtered_logs:
-                if len(log) == 4:
-                    self.tree.insert('', 'end', values=(log[0], log[1], log[2], log[3]))
+                self.tree.insert('', 'end', values=log)
             
             self.adjust_column_widths()
 
@@ -105,7 +128,8 @@ class SyslogGUI:
         """Clear the filters and reload all syslog entries."""
         try:
             self.severity_filter.current(0)
-            self.search_entry.delete(0, tk.END)
+            self.description_search_entry.delete(0, tk.END)
+            self.host_search_entry.delete(0, tk.END)
             self.load_syslog_entries()
         except Exception as e:
             self.logger.log_error("Failed to clear filter: " + str(e))
