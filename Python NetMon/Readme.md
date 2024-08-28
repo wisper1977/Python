@@ -174,7 +174,7 @@ The Log Viewer is a feature that allows you to view, filter, archive, and clear 
 ### Viewing Sysogs
 
 1. Open the application.
-2. Navigate to `View > Sysog Viewer` from the menu bar.
+2. Navigate to `Tools > Sysog Viewer` from the menu bar.
 3. The Log Viewer window will open, displaying a list of log entries with details such as timestamp, log level, and message.
 
 ## Version History
