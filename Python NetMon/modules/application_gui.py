@@ -10,6 +10,7 @@ from modules.log_viewer_gui import LogViewerGUI
 from modules.device_dialog import DeviceDialog
 from modules.settings_manager import SettingsManager
 from modules.syslog_gui import SyslogGUI
+from modules.speedtest_gui import SpeedTestGUI
 
 
 class ApplicationGUI:
@@ -47,6 +48,7 @@ class ApplicationGUI:
             file_menu = tk.Menu(menubar, tearoff=0)
             edit_menu = tk.Menu(menubar, tearoff=0)
             view_menu = tk.Menu(menubar, tearoff=0)
+            tools_menu = tk.Menu(menubar, tearoff=0)
             help_menu = tk.Menu(menubar, tearoff=0)
             
             # Adding 'Settings' under 'File'
@@ -61,7 +63,10 @@ class ApplicationGUI:
             
             # Adding 'Log' under 'View'
             view_menu.add_command(label="Log Viewer", command=self.log_viewer.open_log_viewer)
-            view_menu.add_command(label="SysLog Viewer", command=self.open_syslog_viewer)
+
+            #Adding various tools under 'Tools'
+            tools_menu.add_command(label="SysLog Viewer", command=self.open_syslog_viewer)
+            tools_menu.add_command(label="Speed Test", command=self.open_speedtest_gui)
         
             # Adding 'Online Help' and 'About' under 'Help'
             help_menu.add_command(label="Online Help", accelerator="Ctrl+H", command=self.open_online_help)
@@ -80,6 +85,7 @@ class ApplicationGUI:
             menubar.add_cascade(label="File", menu=file_menu)
             menubar.add_cascade(label="Edit", menu=edit_menu)
             menubar.add_cascade(label="View", menu=view_menu)
+            menubar.add_cascade(label="Tools", menu=tools_menu)
             menubar.add_cascade(label="Help", menu=help_menu)
             self.master.config(menu=menubar)
         except Exception as e:
@@ -144,6 +150,16 @@ class ApplicationGUI:
             syslog_gui.show()  # Assuming SYSLOG_Gui has a show method to display the GUI
         except Exception as e:
             self.logger.log_error("Failed to open SYSLOG viewer: " + str(e))
+            raise e
+        
+    def open_speedtest_gui(self):
+        """Open the SpeedTest GUI in a new window."""
+        try:
+            # Create a new Toplevel window for SpeedTestGUI to avoid conflicts with the main window
+            new_window = tk.Toplevel(self.master)
+            speedtest_gui = SpeedTestGUI(new_window)  # Initialize with the new Toplevel window
+        except Exception as e:
+            self.logger.log_error("Failed to open SpeedTest GUI: " + str(e))
             raise e
     
     def add_device_call(self):
