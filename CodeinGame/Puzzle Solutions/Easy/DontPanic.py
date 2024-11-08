@@ -1,40 +1,26 @@
-import sys
-import math
+# Reading the input values
+f, w, r, c, g, t, a, e = map(int, input().split())
 
-# nb_floors: number of floors
-# width: width of the area
-# nb_rounds: maximum number of rounds
-# exit_floor: floor on which the exit is found
-# exit_pos: position of the exit on its floor
-# nb_total_clones: number of generated clones
-# nb_additional_elevators: ignore (always zero)
-# nb_elevators: number of elevators
-nb_floors, width, nb_rounds, exit_floor, exit_pos, nb_total_clones, nb_additional_elevators, nb_elevators = [int(i) for i in input().split()]
+# Initialize an empty dictionary to store the elevators' positions
+h = {}
 
-# Store the position of elevators by floor
-elevators = {}
-for i in range(nb_elevators):
-    elevator_floor, elevator_pos = [int(j) for j in input().split()]
-    elevators[elevator_floor] = elevator_pos
+# Reading the elevator data and storing it in the dictionary
+for _ in range(e):
+    k, l = map(int, input().split())  # Read the floor number and elevator position
+    h[k] = l  # Map the floor number to the elevator position
 
-# game loop
+# The main game loop
 while True:
-    inputs = input().split()
-    clone_floor = int(inputs[0])  # floor of the leading clone
-    clone_pos = int(inputs[1])  # position of the leading clone on its floor
-    direction = inputs[2]  # direction of the leading clone: LEFT or RIGHT
+    # Reading clone's current floor, position, and direction
+    b, p, d = input().split()
+    b, p = int(b), int(p)  # Convert floor and position to integers
 
-    # Determine the target position (elevator or exit)
-    target_pos = exit_pos if clone_floor == exit_floor else elevators.get(clone_floor, None)
+    # Determine the elevator position for the current floor
+    # If the clone is on the exit floor, we use the exit's position instead of the elevator's position
+    m = g if b == c else h.get(b)
 
-    if target_pos is not None:
-        # Check if the clone is moving in the right direction towards the target
-        if (clone_pos < target_pos and direction == "LEFT") or (clone_pos > target_pos and direction == "RIGHT"):
-            # If moving away from the target, block to change direction
-            print("BLOCK")
-        else:
-            # Otherwise, wait to keep moving in the current direction
-            print("WAIT")
+    # Logic to decide whether to block or wait
+    if m and ((p < m and d == "LEFT") or (p > m and d == "RIGHT")):
+        print("BLOCK")  # Block the clone if it's about to collide with an elevator
     else:
-        # No action needed if there's no relevant target (defensive programming)
-        print("WAIT")
+        print("WAIT")  # Otherwise, allow the clone to move freely
