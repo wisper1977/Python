@@ -34,8 +34,13 @@ atomic_masses = {
 # Initialize molar mass
 molar_mass = 0
 
-# Process the formula element by element
+#Instructions
+print("Welcome to the Chemical Molar Mass Calculator!\n")
+print("Enter a chemical string to find it's Molar Mass")
+print("Please enter the first Element, then the count of the Element.")
+print("You will get an oportuinity to add one more element and count as well.")
 
+# Process the formula element by element
 # First element
 element = input("Enter the first element in the formula: ")
 count = int(input("Enter the count for the first element (1 if not specified): "))
