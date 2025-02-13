@@ -1,10 +1,6 @@
-import sys
-
-# Read initialization inputs
 data = list(map(int, input().split()))
 nb_floors, width, nb_rounds, exit_floor, exit_pos, _, _, nb_elevators = data
 
-# Dictionary to store elevator positions per floor
 elevators = {exit_floor: exit_pos, **{floor: pos for floor, pos in (map(int, input().split()) for _ in range(nb_elevators))}}
 
 while True:
