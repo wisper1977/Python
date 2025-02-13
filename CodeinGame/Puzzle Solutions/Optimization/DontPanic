@@ -1,2 +1,5 @@
-f,*_,c,g,_,a,e=map(int,input().split());h={k:l for k,l in(map(int,input().split())for _ in range(e))}
-while 1:b,p,d=input().split();b,p=int(b),int(p);m=g if b==c else h.get(b);print("BLOCK"if m and(p<m and d=="LEFT"or p>m and d=="RIGHT")else"WAIT")
+I=lambda:input().split()
+N=int
+*_,y,z,_,_,x=map(N,I())
+e=dict(map(N,I())for _ in range(x))
+while 1:print("BLOCK"if(t:=(z if(f:=N((a:=I())[0]))==y else e.get(f)))and((p:=N(a[1]))<t and a[2]<"M"or p>t and a[2]>"M")else"WAIT")
