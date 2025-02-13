@@ -1,26 +1,34 @@
-# Reading the input values
-f, w, r, c, g, t, a, e = map(int, input().split())
+import sys
 
-# Initialize an empty dictionary to store the elevators' positions
-h = {}
+# Read initialization inputs
+nb_floors, width, nb_rounds, exit_floor, exit_pos, nb_total_clones, nb_additional_elevators, nb_elevators = map(int, input().split())
 
-# Reading the elevator data and storing it in the dictionary
-for _ in range(e):
-    k, l = map(int, input().split())  # Read the floor number and elevator position
-    h[k] = l  # Map the floor number to the elevator position
+# Dictionary to store elevator positions per floor
+elevators = {}
+for _ in range(nb_elevators):
+    floor, pos = map(int, input().split())
+    elevators[floor] = pos
 
-# The main game loop
+# Add exit position as an "elevator" for logic simplicity
+elevators[exit_floor] = exit_pos
+
 while True:
-    # Reading clone's current floor, position, and direction
-    b, p, d = input().split()
-    b, p = int(b), int(p)  # Convert floor and position to integers
-
-    # Determine the elevator position for the current floor
-    # If the clone is on the exit floor, we use the exit's position instead of the elevator's position
-    m = g if b == c else h.get(b)
-
-    # Logic to decide whether to block or wait
-    if m and ((p < m and d == "LEFT") or (p > m and d == "RIGHT")):
-        print("BLOCK")  # Block the clone if it's about to collide with an elevator
+    # Read the current state of the leading clone
+    inputs = input().split()
+    clone_floor = int(inputs[0])
+    clone_pos = int(inputs[1])
+    direction = inputs[2]
+    
+    # If no active clone, wait
+    if clone_floor == -1:
+        print("WAIT")
+        continue
+    
+    # Get the target position (exit or elevator on this floor)
+    target_pos = elevators.get(clone_floor, exit_pos)
+    
+    # Determine whether to block or wait
+    if (clone_pos < target_pos and direction == "LEFT") or (clone_pos > target_pos and direction == "RIGHT"):
+        print("BLOCK")
     else:
-        print("WAIT")  # Otherwise, allow the clone to move freely
+        print("WAIT")
