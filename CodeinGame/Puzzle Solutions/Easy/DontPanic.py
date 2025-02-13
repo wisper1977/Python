@@ -1,5 +1,3 @@
-import sys
-
 # Read initialization inputs
 nb_floors, width, nb_rounds, exit_floor, exit_pos, nb_total_clones, nb_additional_elevators, nb_elevators = map(int, input().split())
 
