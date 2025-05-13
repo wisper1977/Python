@@ -1,7 +1,6 @@
 """
 Army Combat v1.1
 by: Chris Collins
-Notes: Currently the game doesn't reset items back into the rooms if you play again.
 """
 
 # Import Modules
