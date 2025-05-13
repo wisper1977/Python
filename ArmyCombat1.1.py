@@ -216,29 +216,48 @@ def show_instructions():
 # Function to display the player's status
 def show_status():
     try:
-        global player_health
-        
+        global player_health, player_attack, player_defense, collected_items
+    
         print("-" * 50)
-        print("Health:", player_health)
-
-        if current_room == "Landing Zone":
-            print("\nYou are now in the Landing Zone")
-            print("There are no items here.")
-            
-        elif current_room == "Outlaw Camp":
-            print("\nYou are now entering the Outlaw Camp")
-            
-        else:
-            print("\nYou are now in the", current_room)
-            print("Description:", rooms[current_room]['description'])
-
-            if items.get(current_room) and items[current_room]['name'] not in collected_items:
-                print("\nThere is a", items[current_room]['name'], "in the room.")
-                item_question = input("Would you like to pick up the item (y/n)? ").lower()
-                if item_question == "y":
-                    collect_item(current_room)
-
-        print("\n" + ("-" * 50))
+        print("Health: " + str(player_health))
+        print("Attack: " + str(player_attack))
+        print("Defense: " + str(player_defense))
+    
+        print("\nYou are now in the " + current_room)
+        print("Description: " + rooms[current_room]['description'])
+    
+        # Show item if it's in the room and not already collected
+        item = items.get(current_room)
+        if item and item['name'] not in collected_items:
+            print("\nThere is a " + item['name'] + " in the room.")
+    
+            while True:
+                choice = input("Would you like to pick up the " + item['name'] + "? (y/n): ").strip().lower()
+                if choice in ['y', 'n']:
+                    break
+                print("Please enter 'y' or 'n'.")
+    
+            if choice == 'y':
+                collected_items[item['name']] = item
+    
+                # Apply item stats to player
+                player_attack += item.get('att', 0)
+                player_defense += item.get('def', 0)
+                if 'heal' in item and item['heal'] > 0:
+                    player_health = min(100, player_health + item['heal'])
+                    print("Used " + item['name'] + " and healed for " + str(item['heal']) +
+                          " HP. New Health: " + str(player_health))
+                    if 'max_uses' not in item:
+                        del items[current_room]  # remove item from the room if not reusable
+                else:
+                    print("You picked up the " + item['name'] + ".")
+    
+                # If item is consumable with limited uses, keep track for future use
+                if 'max_uses' in item:
+                    item['uses_left'] = item['max_uses']
+                    print(item['name'] + " can be used " + str(item['uses_left']) + " more time(s).")
+    
+        print("-" * 50)
         show_inventory()  # Display the player's inventory
 
     except KeyError:
