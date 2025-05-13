@@ -1,7 +1,9 @@
 """
 Army Combat v1.1
 by: Chris Collins
+Notes: Currently the game doesn't reset items back into the rooms if you play again.
 """
+
 # Import Modules
 import random, os
 
@@ -167,7 +169,7 @@ current_room = "Landing Zone"
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
     
-# Functon to place items in random rooms
+# Function to place items in random rooms
 def generate_random_item():
     """
     Randomly selects an item from possible_items list and returns it.
@@ -179,6 +181,7 @@ def generate_random_item():
     possible_items.remove(chosen_item)
     return chosen_item
 
+# Function to place item in rooms
 def initialize_items():
     """
     Initializes items in each room by generating random items from possible_items.
@@ -256,7 +259,6 @@ def show_inventory():
             print(item_name)
             
     print("-" * 50)
-
            
 # Function to collect an item in the current room
 def collect_item(room_name):
@@ -343,6 +345,7 @@ def handle_random_event(event_list, current_room):
             print("\nCongratulations! You defeated the", enemy_name)
         elif combat_result == 'lose':
             print("\nYou were defeated by the", enemy_name + ". Game over.")
+            return 'defeat'
         elif combat_result == 'run':
             print("\nYou managed to escape from the", enemy_name)
 
@@ -365,6 +368,11 @@ def handle_combat(enemy_name):
         print("\nYour health:", player_health)
         print(enemy_name + "'s health:", enemy_health)
 
+        if player_health <= 0:
+            print("\nYou have been defeated.")
+            replay_game()
+            return 'defeat'
+        
         action = input("\n[F]ight, [R]un, [U]se Healing Item? ").lower()
 
         # Fighting
@@ -394,35 +402,39 @@ def handle_combat(enemy_name):
             
     return None
 
+# Function for replay logic
 def replay_game():
-    global current_room, collected_items, player_health
+    global player_health, player_attack, player_defense, current_room, collected_items
 
-    while True:
-        try:
-            choice = input("Play again? (y/n): ").lower()
-            if choice != 'y':
-                print("\nThanks for playing the Game......")
-                break
+    try:
+        choice = input("Play again? (y/n): ").lower()
+        if choice != 'y':
+            print("\nThanks for playing the Game......")
+            return False  # Player chose not to continue
 
-            # Reset game variables for a new playthrough
-            current_room = "Landing Zone"
-            collected_items = {}
-            initialize_items()
+        player_health = 100
+        player_attack = 10
+        player_defense = 0
+        current_room = "Landing Zone"
+        collected_items = {}
 
-            main()  # Start a new playthrough
+        initialize_items()
 
-        except (KeyError, KeyboardInterrupt):
-            print("Oops! There was an error. Please contact the developer.")
-            break
-        except Exception as e:
-            print("An unexpected error occurred:", str(e))
-            break
+    except (KeyError, KeyboardInterrupt):
+        print("Oops! There was an error. Please contact the developer.")
+        return False
+    except Exception as e:
+        print("An unexpected error occurred:", str(e))
+        return False
+
+    return True  # The game should continue
         
-# Main Game Play        
+# Main Game Play
 def main():
     global current_room, collected_items, player_health
 
-    while True:
+    game_continues = True
+    while game_continues:
         try:
             clear_screen()  # Clear the screen at the beginning of the loop
             show_instructions()
@@ -448,18 +460,11 @@ def main():
                     event_list = combat_events
 
                 event_result = handle_random_event(event_list, current_room)
-                if event_result == 'lose':
-                    print("You were defeated in combat. Game over.")
-                    break
-                
-            if current_room == "Outlaw Camp":
-                event_result = handle_random_event(combat_event_outlaws, current_room)
-                if event_result == 'lose':
-                    print("You were defeated in combat. Game over.")
-                    break
-
-            replay_game()
-
+                if event_result == 'defeat':
+                    game_continues = replay_game()  # The loop continues only if this is True
+                    if game_continues:
+                        break  # This will break the inner loop and start a new game
+                        
         except (KeyError, KeyboardInterrupt):
             print("Oops! There was an error. Please contact the developer.")
             break
