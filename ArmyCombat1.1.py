@@ -403,23 +403,37 @@ def handle_combat(enemy_name):
     return None
 
 # Function for replay logic
-def replay_game():
-    global player_health, player_attack, player_defense, current_room, collected_items
+def reset_game():
+    global player_health, player_attack, player_defense
+    global collected_items, current_room, items, possible_items
 
-    try:
-        choice = input("Play again? (y/n): ").lower()
-        if choice != 'y':
-            print("\nThanks for playing the Game......")
-            return False  # Player chose not to continue
-
+    try:     
+        # Reset player stats
         player_health = 100
         player_attack = 10
         player_defense = 0
-        current_room = "Landing Zone"
         collected_items = {}
-
+        current_room = "Landing Zone"
+    
+        # Reset possible_items to the full list
+        possible_items = [
+            {'name': 'Helmet', 'def': 10, 'att': 0, 'heal': 0},
+            {'name': 'Ammo', 'def': 0, 'att': 5, 'heal': 0},
+            {'name': 'Rifle', 'def': 0, 'att': 15, 'heal': 0},
+            {'name': 'Grenade', 'def': 0, 'att': 10, 'heal': 0},
+            {'name': 'Flak Vest', 'def': 20, 'att': 0, 'heal': 0},
+            {'name': 'Medpac', 'def': 0, 'att': 0, 'heal': 30, 'max_uses': 1},
+            {'name': 'Knife', 'def': 0, 'att': 5, 'heal': 0},
+            {'name': 'Energy Drink', 'def': 0, 'att': 0, 'heal': 15, 'max_uses': 2},
+            {'name': 'Rucksack', 'def': 0, 'att': 0, 'heal': 0},
+            {'name': 'Shovel', 'def': 0, 'att': 0, 'heal': 0},
+            {'name': 'Canteen', 'def': 0, 'att': 0, 'heal': 5, 'max_uses': 3},
+        ]
+    
+        # Reset items in each room
+        items = {room: None for room in rooms}
         initialize_items()
-
+        
     except (KeyError, KeyboardInterrupt):
         print("Oops! There was an error. Please contact the developer.")
         return False
@@ -428,18 +442,17 @@ def replay_game():
         return False
 
     return True  # The game should continue
-        
+    
 # Main Game Play
 def main():
     global current_room, collected_items, player_health
 
-    game_continues = True
-    while game_continues:
+    while True:
         try:
-            clear_screen()  # Clear the screen at the beginning of the loop
+            reset_game()
+            clear_screen()
             show_instructions()
             input("\nPress Enter to start the game...")
-            initialize_items()
             show_status()
 
             while current_room != "Outlaw Camp":
@@ -451,7 +464,7 @@ def main():
                 print('You are in ' + current_room + ', your possible moves are: ' + ', '.join([move for move in dir_poss if move != 'description']))
                 direction = get_valid_direction(dir_poss)
                 current_room = rooms[current_room][direction]
-                clear_screen()  # Clear the screen before showing the new room description and status
+                clear_screen()
                 show_status()
 
                 if random.random() < 0.75:
@@ -461,10 +474,15 @@ def main():
 
                 event_result = handle_random_event(event_list, current_room)
                 if event_result == 'defeat':
-                    game_continues = replay_game()  # The loop continues only if this is True
-                    if game_continues:
-                        break  # This will break the inner loop and start a new game
-                        
+                    break  # Player defeated, end the game loop
+
+            play_again = input("\nDo you want to play again? (y/n): ").lower()
+            if play_again == "y":
+                reset_game()
+                main()  # or however your main loop starts
+            else:
+                print("Thanks for playing!")
+
         except (KeyError, KeyboardInterrupt):
             print("Oops! There was an error. Please contact the developer.")
             break
