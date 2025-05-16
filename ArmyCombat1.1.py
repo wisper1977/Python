@@ -1,5 +1,5 @@
 """
-Army Combat v1.1
+Army Combat v1.1.0
 by: Chris Collins
 """
 
@@ -114,16 +114,12 @@ rooms = {
 items = {room: None for room in rooms}
 
 # Separate list for combat events
-combat_events = [
+events = [
     {'event_type': 'combat', 'description': "\nYou encounter hostile creatures!", 'enemy': 'Creatures'},
     {'event_type': 'combat', 'description': "\nA group of bandits attacks!", 'enemy': 'Bandits'},
     {'event_type': 'combat', 'description': "\nYou encounter a hostile group of looters!", 'enemy': 'Looters'},
     {'event_type': 'combat', 'description': "\nA rival faction ambushes you!", 'enemy': 'Rival Faction'},
     {'event_type': 'combat', 'description': "\nA pack of feral dogs attacks!", 'enemy': 'Feral Dogs'},
-]
-
-# Dictionary of random events with descriptions and outcomes
-random_events = [
     {'event_type': 'flavor', 'description': "\nYou hear strange noises in the distance."},
     {'event_type': 'flavor', 'description': "\nA mysterious mist envelops the area."},
     {'event_type': 'flavor', 'description': "\nYou stumble upon an old campsite."},
@@ -132,13 +128,7 @@ random_events = [
     {'event_type': 'flavor', 'description': "\nYou come across an abandoned vehicle."},
     {'event_type': 'flavor', 'description': "\nYou discover a torn map with a mysterious location marked."},
     {'event_type': 'flavor', 'description': "\nYou stumble upon a makeshift campfire."},
-    # Add more flavor events here
-]
-
-# Dictionary for the Outlaws battle
-combat_event_outlaws = [
     {'event_type': 'combat', 'description': "\nThe Outlaws have found you!", 'enemy': 'Outlaws'},
-    # Add more outlaw-related combat events here if needed
 ]
 
 # Dictionary of possible items
@@ -163,6 +153,7 @@ player_attack = 10
 player_defense = 0
 collected_items = {}
 current_room = "Landing Zone"
+event_result = ""
 
 # Function to clear screen
 def clear_screen():
@@ -212,72 +203,74 @@ def show_instructions():
     print("Your Objective: Collect your gear to attack the Outlaws")
     print("Move commands: South, North, East, West")
     print("-" * 50)
+    
+    input("\nPress Enter to start the game...")
 
 # Function to display the player's status
 def show_status():
     try:
         global player_health, player_attack, player_defense, collected_items
-    
+        global current_room, rooms, items
+
         print("-" * 50)
         print("Health: " + str(player_health))
         print("Attack: " + str(player_attack))
         print("Defense: " + str(player_defense))
-    
-        print("\nYou are now in the " + current_room)
-        print("Description: " + rooms[current_room]['description'])
-    
-        # Show item if it's in the room and not already collected
+        print("-" * 50)
+        print("You are now in the " + current_room)
+        print("Description: " + rooms.get(current_room, {}).get('description', 'No description available.'))
+
         item = items.get(current_room)
         if item and item['name'] not in collected_items:
             print("\nThere is a " + item['name'] + " in the room.")
-    
+
             while True:
                 choice = input("Would you like to pick up the " + item['name'] + "? (y/n): ").strip().lower()
                 if choice in ['y', 'n']:
                     break
                 print("Please enter 'y' or 'n'.")
-    
+
             if choice == 'y':
                 collected_items[item['name']] = item
-    
-                # Apply item stats to player
                 player_attack += item.get('att', 0)
                 player_defense += item.get('def', 0)
+                print("You picked up the " + item['name'] + ".")
+
                 if 'heal' in item and item['heal'] > 0:
-                    player_health = min(100, player_health + item['heal'])
-                    print("Used " + item['name'] + " and healed for " + str(item['heal']) +
-                          " HP. New Health: " + str(player_health))
-                    if 'max_uses' not in item:
-                        del items[current_room]  # remove item from the room if not reusable
-                else:
-                    print("You picked up the " + item['name'] + ".")
-    
-                # If item is consumable with limited uses, keep track for future use
+                    print("This item will heal you when used in combat.")
+
                 if 'max_uses' in item:
                     item['uses_left'] = item['max_uses']
                     print(item['name'] + " can be used " + str(item['uses_left']) + " more time(s).")
-    
+
+                if 'max_uses' not in item:
+                    del items[current_room]
+
         print("-" * 50)
-        show_inventory()  # Display the player's inventory
-
-    except KeyError:
-        print("An error occurred while accessing room information.")
-
-# Function to display player's Inventory
+        show_inventory()
+    except Exception as e:
+        print("An error occurred while accessing room information: " + str(e))
+        
 def show_inventory():
+    """Function to display the player's inventory."""
     global collected_items
     print(("-" * 19) + " Inventory " + ("-" * 20))
-    for item_name, item_data in collected_items.items():
-        if item_data.get('heal', 0) > 0:
-            item_count = " x" + str(item_data['count']) if item_data['count'] > 1 else ""
-            if 'uses' in item_data and item_data['uses'] > 0:  # Check if uses is greater than 0
-                uses_info = " (Uses: {}/{})".format(item_data['uses'], item_data['max_uses'])
-                print("{}{}{} (Heals: {} HP)".format(item_name, item_count, uses_info, item_data['heal']))
-        else:
-            print(item_name)
-            
+    if not collected_items:
+        print("Your inventory is empty.")
+    else:
+        for item_name, item in collected_items.items():
+            count = item.get('count', 1)
+            if item.get('heal', 0) > 0:
+                item_count = " x" + str(count) if count > 1 else ""
+                if 'uses' in item and item['uses'] > 0:
+                    uses_info = " (Uses: {}/{})".format(item['uses'], item.get('max_uses', 1))
+                    print("{}{}{} (Heals: {} HP)".format(item_name, item_count, uses_info, item['heal']))
+                else:
+                    print("{}{} (Heals: {} HP)".format(item_name, item_count, item['heal']))
+            else:
+                print(item_name)
     print("-" * 50)
-           
+            
 # Function to collect an item in the current room
 def collect_item(room_name):
     global collected_items, player_attack, player_defense
@@ -308,77 +301,88 @@ def collect_item(room_name):
 # Use Healing Item
 def use_medical_item():
     global player_health, collected_items
-    
-    healing_items = [item for item in collected_items if 'heal' in collected_items[item] and collected_items[item]['heal'] > 0 and 'uses' in collected_items[item] and 'max_uses' in collected_items[item]]
-
+     
+    # Filter healing items: items must have 'heal' > 0 and 'uses_left' and 'max_uses'
+    healing_items = [item for item in collected_items if 'heal' in collected_items[item] and collected_items[item]['heal'] > 0 and 'uses_left' in collected_items[item] and 'max_uses' in collected_items[item]]
+     
     if not healing_items:
         print("\nYou don't have any healing items to use.")
         return
     
     print("\nSelect a healing item to use:")
+    # Enumerate the healing items and display their stats
     for index, item in enumerate(healing_items, start=1):
         item_data = collected_items[item]
-        print("{}. {} (Uses: {}/{}) (Heals {} HP)".format(index, item, item_data['uses'], item_data['max_uses'], item_data['heal']))
+        print("{}. {} (Uses: {}/{}) (Heals {} HP)".format(index, item, item_data['uses_left'], item_data['max_uses'], item_data['heal']))
     
     choice = input("Enter the number of the healing item to use: ")
     try:
+        # Check if the user input is valid
         choice_index = int(choice) - 1
         if 0 <= choice_index < len(healing_items):
             healing_item = healing_items[choice_index]
             item_data = collected_items[healing_item]
-            if item_data['uses'] > 0:
+            
+            if item_data['uses_left'] > 0:
+                # Apply healing
                 heal_amount = item_data['heal']
                 player_health += heal_amount
-                player_health = min(player_health, 100)
-                item_data['uses'] -= 1  # Decrement the remaining uses
+                player_health = min(player_health, 100)  # Ensure health doesn't exceed 100
+                item_data['uses_left'] -= 1  # Decrement the remaining uses
                 print("\nYou used a {} and gained {} health.".format(healing_item, heal_amount))
                 print("New health:", player_health)
-                if item_data['uses'] == 0:
+                
+                if item_data['uses_left'] == 0:
                     print("You have used up all the allowed uses for this item.")
+            else:
+                print("This item has no remaining uses.")
         else:
-            print("Invalid choice.")
-            
+            print("Invalid choice. Please select a valid number between 1 and {}".format(len(healing_items)))
     except ValueError:
-        print("Invalid input. Enter the number of the healing item.")
+        print("Invalid input. Please enter a valid number corresponding to the healing item.")
         
 # Function to handle the event in the current room
 def handle_random_event(event_list, current_room):
-    event_info = random.choice(event_list)
-    event_type = event_info.get('event_type')
-    description = event_info.get('description')
-
-    print("\n" + ("=" * 50))
-    print(description)
-
-    if event_type == 'flavor':
-        # You can implement additional logic for different flavor events here
-        pass
-    elif event_type == 'combat':
+    global event_result
+    while True:
+        event_info = random.choice(event_list)
+        event_type = event_info.get('event_type')
+        description = event_info.get('description')
         enemy_name = event_info.get('enemy')
-        if current_room == "Outlaw Camp" and enemy_name != "Outlaws":
-            return  # Skip other encounters in Outlaw Camp
-        combat_result = handle_combat(enemy_name)
 
-        if combat_result == 'win':
-            print("\nCongratulations! You defeated the", enemy_name)
-        elif combat_result == 'lose':
-            print("\nYou were defeated by the", enemy_name + ". Game over.")
-            return 'defeat'
-        elif combat_result == 'run':
-            print("\nYou managed to escape from the", enemy_name)
+        # Skip non-Outlaw events in the Outlaw Camp
+        if current_room == "Outlaw Camp" and (event_type == 'combat' and enemy_name != "Outlaws"):
+            continue
 
-    print("=" * 50 + "\n")
+        print("\n" + ("=" * 50))
+        print(description)
+
+        if event_type == 'flavor':
+            # Add more logic for flavor events if needed
+            pass
+
+        elif event_type == 'combat':
+            event_result = handle_combat(enemy_name)
+
+            if event_result == 'win':
+                print("\nCongratulations! You defeated the", enemy_name)
+            elif event_result == 'lose':
+                print("\nYou were defeated by the", enemy_name + ". Game over.")
+                return 'defeat'
+            elif event_result == 'run':
+                print("\nYou managed to escape from the", enemy_name)
+
+        print("=" * 50 + "\n")
+        break  # Exit loop after a valid event is handled
     
 # Function to handle combat encounters
 def handle_combat(enemy_name):
     """
-    Randomly selects an item from possible_items list and returns it.
-    Removes the chosen item from possible_items.
+    Handles the combat interaction, including using healing items.
     """
     global player_health, collected_items
 
     enemy_health = 100
-    medpack_uses = 0
 
     print("\nA " + enemy_name + " is attacking you!")
 
@@ -414,9 +418,9 @@ def handle_combat(enemy_name):
             print("\nYou choose to run away.")
             return 'run'
 
-        # Use healing       
+        # Use healing item
         elif action == 'u':
-            use_medical_item()
+            use_medical_item()  # Call the use_medical_item function to handle healing items.
             
     return None
 
@@ -470,7 +474,6 @@ def main():
             reset_game()
             clear_screen()
             show_instructions()
-            input("\nPress Enter to start the game...")
             show_status()
 
             while current_room != "Outlaw Camp":
@@ -486,13 +489,21 @@ def main():
                 show_status()
 
                 if random.random() < 0.75:
-                    event_list = random_events
+                    filtered_events = [e for e in events if e['event_type'] == 'flavor']
                 else:
-                    event_list = combat_events
-
-                event_result = handle_random_event(event_list, current_room)
-                if event_result == 'defeat':
-                    break  # Player defeated, end the game loop
+                    filtered_events = [e for e in events if e['event_type'] == 'combat']
+                
+                if current_room != "Outlaw Camp":
+                    filtered_events = [
+                        e for e in filtered_events
+                        if not (e.get('enemy') == 'Outlaws' and e['event_type'] == 'combat')
+                    ]
+                
+                # Call the handler if there are any valid events
+                if filtered_events:
+                    event_result = handle_random_event(filtered_events, current_room)
+                    if event_result == 'defeat':
+                        break
 
             play_again = input("\nDo you want to play again? (y/n): ").lower()
             if play_again == "y":
