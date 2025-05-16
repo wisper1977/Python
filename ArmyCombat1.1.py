@@ -134,18 +134,18 @@ events = [
 # Dictionary of possible items
 possible_items = [
     {'name': 'Helmet', 'def': 10, 'att': 0, 'heal': 0},
-    {'name': 'Ammo', 'def': 0, 'att': 5, 'heal': 0},
-    {'name': 'Rifle', 'def': 0, 'att': 15, 'heal': 0},
-    {'name': 'Grenade', 'def': 0, 'att': 10, 'heal': 0},
+    {'name': 'Ammo', 'def': 0, 'att': 3, 'heal': 0},
+    {'name': 'Rifle', 'def': 0, 'att': 12, 'heal': 0},
+    {'name': 'Grenade', 'def': 0, 'att': 7, 'heal': 0, 'max_uses': 2},
     {'name': 'Flak Vest', 'def': 20, 'att': 0, 'heal': 0},
     {'name': 'Medpac', 'def': 0, 'att': 0, 'heal': 30, 'max_uses': 1},
-    {'name': 'Knife', 'def': 0, 'att': 5, 'heal': 0},
+    {'name': 'Knife', 'def': 0, 'att': 4, 'heal': 0},
     {'name': 'Energy Drink', 'def': 0, 'att': 0, 'heal': 15, 'max_uses': 2},
-    {'name': 'Rucksack', 'def': 0, 'att': 0, 'heal': 0},
-    {'name': 'Shovel', 'def': 0, 'att': 0, 'heal': 0},
+    {'name': 'Rucksack', 'def': 5, 'att': 1, 'heal': 0},
+    {'name': 'Shovel', 'def': 0, 'att': 2, 'heal': 0},
     {'name': 'Canteen', 'def': 0, 'att': 0, 'heal': 5, 'max_uses': 3},
-    # Add more items here
 ]
+
 
 # Set Variables
 player_health = 100
@@ -184,11 +184,12 @@ def initialize_items():
     
 # Function to get valid direction input from the user
 def get_valid_direction(dir_poss):
+    options = [d for d in dir_poss if d not in ['description', 'item']]
     while True:
-        direction = input("Choose a direction to move: " + ", ".join([move for move in dir_poss if move != 'description']) + ": ").capitalize()
+        direction = input("Choose a direction to move (" + ", ".join(options) + "): ").capitalize()
         if direction in dir_poss:
             return direction
-        print("Invalid direction. Choose from:", ", ".join([move for move in dir_poss if move != 'description']))
+        print("Invalid direction. Choose from:", ", ".join(options))
 
 # Function to display the game instructions
 def show_instructions():
@@ -273,71 +274,87 @@ def show_inventory():
             
 # Function to collect an item in the current room
 def collect_item(room_name):
+    """
+    Collects the item present in the specified room and updates player stats.
+
+    Parameters:
+    - room_name (str): The name of the current room.
+
+    Effects:
+    - Adds the item to collected_items or increments its count.
+    - Updates player's attack and defense if item has such bonuses.
+    - Prints feedback to the player.
+    """
     global collected_items, player_attack, player_defense
     collected_item = items[room_name]
     
     item_name = collected_item['name']
     if item_name not in collected_items:
         collected_items[item_name] = {
-            'count': 1, 
-            'max_uses': collected_item.get('max_uses', 0),  # Keep track of the original uses
-            'uses': collected_item.get('max_uses', 0),  # Initialize uses with the max_uses value if available
-            'heal': collected_item.get('heal', 0)  # Copy the 'heal' attribute
+            'count': 1,
+            'max_uses': collected_item.get('max_uses', 0),
+            'uses_left': collected_item.get('max_uses', 0),
+            'heal': collected_item.get('heal', 0)
         }
     else:
         collected_items[item_name]['count'] += 1
-        collected_items[item_name]['uses'] = collected_items[item_name]['max_uses']
+        collected_items[item_name]['uses_left'] = collected_items[item_name]['max_uses']
         
-    print("You picked up a", item_name)
-    print("Collected", collected_items[item_name]['count'], item_name + "(s)")
+    print("You picked up a " + item_name)
+    print("Collected " + str(collected_items[item_name]['count']) + " " + item_name + "(s)")
     
     if collected_item['att'] > 0:
         player_attack += collected_item['att']
-        print("Attack increased by", collected_item['att'])
+        print("Attack increased by " + str(collected_item['att']))
     if collected_item['def'] > 0:
         player_defense += collected_item['def']
-        print("Defense increased by", collected_item['def'])
+        print("Defense increased by " + str(collected_item['def']))
 
 # Use Healing Item
-def use_medical_item():
+def use_medical_item(get_input=input):
+    """
+    Allows the player to use a healing item from their inventory.
+
+    Parameters:
+    - get_input (callable): Function to get player input (default: built-in input).
+    """
     global player_health, collected_items
      
-    # Filter healing items: items must have 'heal' > 0 and 'uses_left' and 'max_uses'
-    healing_items = [item for item in collected_items if 'heal' in collected_items[item] and collected_items[item]['heal'] > 0 and 'uses_left' in collected_items[item] and 'max_uses' in collected_items[item]]
+    healing_items = [item for item in collected_items if
+                     collected_items[item].get('heal', 0) > 0 and
+                     collected_items[item].get('uses_left', 0) > 0 and
+                     collected_items[item].get('max_uses', 0) > 0]
      
     if not healing_items:
         print("\nYou don't have any healing items to use.")
         return
     
     print("\nSelect a healing item to use:")
-    # Enumerate the healing items and display their stats
     for index, item in enumerate(healing_items, start=1):
         item_data = collected_items[item]
-        print("{}. {} (Uses: {}/{}) (Heals {} HP)".format(index, item, item_data['uses_left'], item_data['max_uses'], item_data['heal']))
+        print(str(index) + ". " + item + " (Uses: " + str(item_data['uses_left']) + "/" + str(item_data['max_uses']) + ") (Heals " + str(item_data['heal']) + " HP)")
     
-    choice = input("Enter the number of the healing item to use: ")
+    choice = get_input("Enter the number of the healing item to use: ")
     try:
-        # Check if the user input is valid
         choice_index = int(choice) - 1
         if 0 <= choice_index < len(healing_items):
             healing_item = healing_items[choice_index]
             item_data = collected_items[healing_item]
             
             if item_data['uses_left'] > 0:
-                # Apply healing
                 heal_amount = item_data['heal']
                 player_health += heal_amount
-                player_health = min(player_health, 100)  # Ensure health doesn't exceed 100
-                item_data['uses_left'] -= 1  # Decrement the remaining uses
-                print("\nYou used a {} and gained {} health.".format(healing_item, heal_amount))
-                print("New health:", player_health)
+                player_health = min(player_health, 100)
+                item_data['uses_left'] -= 1
+                print("\nYou used a " + healing_item + " and gained " + str(heal_amount) + " health.")
+                print("New health: " + str(player_health))
                 
                 if item_data['uses_left'] == 0:
                     print("You have used up all the allowed uses for this item.")
             else:
                 print("This item has no remaining uses.")
         else:
-            print("Invalid choice. Please select a valid number between 1 and {}".format(len(healing_items)))
+            print("Invalid choice. Please select a valid number between 1 and " + str(len(healing_items)))
     except ValueError:
         print("Invalid input. Please enter a valid number corresponding to the healing item.")
         
@@ -376,52 +393,61 @@ def handle_random_event(event_list, current_room):
         break  # Exit loop after a valid event is handled
     
 # Function to handle combat encounters
-def handle_combat(enemy_name):
+def handle_combat(enemy_name, get_action=input):
     """
-    Handles the combat interaction, including using healing items.
+    Handles the combat interaction between player and enemy.
+
+    Parameters:
+    - enemy_name (str): The name of the enemy.
+    - get_action (callable): Function to get player input (default: built-in input).
+
+    Returns:
+    - 'win' if player wins,
+    - 'lose' if player loses,
+    - 'run' if player runs away,
+    - None if combat ends without conclusion.
     """
-    global player_health, collected_items
+    global player_health, player_attack, player_defense, collected_items
 
     enemy_health = 100
 
     print("\nA " + enemy_name + " is attacking you!")
 
     while player_health > 0 and enemy_health > 0:
-        print("\nYour health:", player_health)
-        print(enemy_name + "'s health:", enemy_health)
+        print("\nYour health: " + str(player_health))
+        print(enemy_name + "'s health: " + str(enemy_health))
 
-        if player_health <= 0:
-            print("\nYou have been defeated.")
-            replay_game()
-            return 'defeat'
-        
-        action = input("\n[F]ight, [R]un, [U]se Healing Item? ").lower()
+        action = get_action("\n[F]ight, [R]un, [U]se Healing Item? ").lower()
 
-        # Fighting
         if action == 'f':
-            player_damage = random.randint(10, 20)
-            enemy_damage = random.randint(5, 15)
+            # Calculate damage factoring in player_attack and player_defense
+            player_damage = random.randint(player_attack // 2, player_attack)
+            enemy_damage = max(random.randint(5, 15) - player_defense, 0)
 
             player_health -= enemy_damage
             enemy_health -= player_damage
+
+            print("\nYou dealt " + str(player_damage) + " damage to the " + enemy_name + ".")
+            print("The " + enemy_name + " dealt " + str(enemy_damage) + " damage to you.")
 
             if player_health <= 0:
                 print("\nYou have been defeated.")
                 return 'lose'
 
             if enemy_health <= 0:
-                print("\nYou defeated the", enemy_name + "!")
+                print("\nYou defeated the " + enemy_name + "!")
                 return 'win'
 
-        # Running
         elif action == 'r':
             print("\nYou choose to run away.")
             return 'run'
 
-        # Use healing item
         elif action == 'u':
-            use_medical_item()  # Call the use_medical_item function to handle healing items.
-            
+            use_medical_item(get_action)
+
+        else:
+            print("Invalid action. Please enter 'F', 'R', or 'U'.")
+
     return None
 
 # Function for replay logic
@@ -440,15 +466,15 @@ def reset_game():
         # Reset possible_items to the full list
         possible_items = [
             {'name': 'Helmet', 'def': 10, 'att': 0, 'heal': 0},
-            {'name': 'Ammo', 'def': 0, 'att': 5, 'heal': 0},
-            {'name': 'Rifle', 'def': 0, 'att': 15, 'heal': 0},
-            {'name': 'Grenade', 'def': 0, 'att': 10, 'heal': 0},
+            {'name': 'Ammo', 'def': 0, 'att': 3, 'heal': 0},
+            {'name': 'Rifle', 'def': 0, 'att': 12, 'heal': 0},
+            {'name': 'Grenade', 'def': 0, 'att': 7, 'heal': 0, 'max_uses': 2},
             {'name': 'Flak Vest', 'def': 20, 'att': 0, 'heal': 0},
             {'name': 'Medpac', 'def': 0, 'att': 0, 'heal': 30, 'max_uses': 1},
-            {'name': 'Knife', 'def': 0, 'att': 5, 'heal': 0},
+            {'name': 'Knife', 'def': 0, 'att': 4, 'heal': 0},
             {'name': 'Energy Drink', 'def': 0, 'att': 0, 'heal': 15, 'max_uses': 2},
-            {'name': 'Rucksack', 'def': 0, 'att': 0, 'heal': 0},
-            {'name': 'Shovel', 'def': 0, 'att': 0, 'heal': 0},
+            {'name': 'Rucksack', 'def': 5, 'att': 1, 'heal': 0},
+            {'name': 'Shovel', 'def': 0, 'att': 2, 'heal': 0},
             {'name': 'Canteen', 'def': 0, 'att': 0, 'heal': 5, 'max_uses': 3},
         ]
     
@@ -505,6 +531,19 @@ def main():
                     if event_result == 'defeat':
                         break
 
+            if current_room == "Outlaw Camp":
+                clear_screen()
+                print("You have reached the Outlaw Camp. Prepare for the final battle!")
+                show_status()
+
+                combat_result = handle_combat("Outlaws", input)
+                if combat_result == 'win':
+                    print("Congratulations! You defeated the Outlaws and won the game!")
+                elif combat_result == 'defeat':
+                    print("You were defeated by the Outlaws. Game Over.")
+                elif combat_result == 'run':
+                    print("You ran away from the Outlaws... but the game is over now.")
+                    
             play_again = input("\nDo you want to play again? (y/n): ").lower()
             if play_again == "y":
                 reset_game()
