@@ -1,0 +1,8 @@
+{
+  "Creatures": {"health": 60, "min_damage": 3, "max_damage": 10, "score_value": 15},
+  "Feral Dogs": {"health": 45, "min_damage": 4, "max_damage": 12, "score_value": 15},
+  "Bandits": {"health": 80, "min_damage": 6, "max_damage": 14, "score_value": 25},
+  "Looters": {"health": 90, "min_damage": 5, "max_damage": 16, "score_value": 25},
+  "Rival Faction": {"health": 110, "min_damage": 8, "max_damage": 18, "score_value": 35},
+  "Outlaws": {"health": 150, "min_damage": 10, "max_damage": 22, "score_value": 100}
+}

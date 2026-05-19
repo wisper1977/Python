@@ -1,0 +1,15 @@
+[
+  {"event_type": "combat", "description": "\nYou encounter hostile creatures!", "enemy": "Creatures"},
+  {"event_type": "combat", "description": "\nA group of bandits attacks!", "enemy": "Bandits"},
+  {"event_type": "combat", "description": "\nYou encounter a hostile group of looters!", "enemy": "Looters"},
+  {"event_type": "combat", "description": "\nA rival faction ambushes you!", "enemy": "Rival Faction"},
+  {"event_type": "combat", "description": "\nA pack of feral dogs attacks!", "enemy": "Feral Dogs"},
+  {"event_type": "flavor", "description": "\nYou hear strange noises in the distance."},
+  {"event_type": "flavor", "description": "\nA mysterious mist envelops the area."},
+  {"event_type": "flavor", "description": "\nYou stumble upon an old campsite."},
+  {"event_type": "flavor", "description": "\nYou find a hidden cache of supplies."},
+  {"event_type": "flavor", "description": "\nA sudden rainstorm forces you to take shelter."},
+  {"event_type": "flavor", "description": "\nYou come across an abandoned vehicle."},
+  {"event_type": "flavor", "description": "\nYou discover a torn map with a mysterious location marked."},
+  {"event_type": "flavor", "description": "\nYou stumble upon a makeshift campfire."}
+]

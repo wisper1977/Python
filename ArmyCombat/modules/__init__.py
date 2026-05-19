@@ -1,0 +1,1 @@
+"""Army Combat game package."""

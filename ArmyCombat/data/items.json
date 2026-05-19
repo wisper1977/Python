@@ -1,0 +1,13 @@
+[
+  {"name": "Helmet", "defense": 10, "attack": 0, "heal": 0},
+  {"name": "Ammo", "defense": 0, "attack": 3, "heal": 0},
+  {"name": "Rifle", "defense": 0, "attack": 12, "heal": 0},
+  {"name": "Grenade", "defense": 0, "attack": 7, "heal": 0, "max_uses": 2},
+  {"name": "Flak Vest", "defense": 20, "attack": 0, "heal": 0},
+  {"name": "Medpac", "defense": 0, "attack": 0, "heal": 30, "max_uses": 1},
+  {"name": "Knife", "defense": 0, "attack": 4, "heal": 0},
+  {"name": "Energy Drink", "defense": 0, "attack": 0, "heal": 15, "max_uses": 2},
+  {"name": "Rucksack", "defense": 5, "attack": 1, "heal": 0},
+  {"name": "Shovel", "defense": 0, "attack": 2, "heal": 0},
+  {"name": "Canteen", "defense": 0, "attack": 0, "heal": 5, "max_uses": 3}
+]
